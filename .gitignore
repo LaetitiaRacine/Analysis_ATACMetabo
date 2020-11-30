@@ -1,0 +1,9 @@
+# Ignore Rhistory files :
+.Rhistory
+
+# Ignore files created by snakemake
+/.snakemake/
+
+/A_raw_data/
+/D_results/
+/link_tab.csv
