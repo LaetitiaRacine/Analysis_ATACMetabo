@@ -104,19 +104,19 @@ rule link_rename_raw :
 rule bam_qc :
 	input : "{file}.bam"
 	output : "{file}.bam.qc"
-	conda : "B_environments/ATACMetabo_main_env.yaml"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ samtools flagstat -O tsv {input} > {output} """
 
 rule bam_nbreads :
 	input : "{file}.bam"
 	output : "{file}.bam.nbreads"
-	conda : "B_environments/ATACMetabo_main_env.yaml"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ samtools view -c {input} > {output} """
 
 rule bam_indexing :
 	input : "{file}.bam"
 	output : "{file}.bam.bai"
-	conda : "B_environments/ATACMetabo_main_env.yaml"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ samtools index {input} > {output} """
 
 
@@ -156,7 +156,7 @@ def bam_downsampling_input(wildcards):
 rule bam_downsampling :
 	input : unpack(bam_downsampling_input)
 	output : "D_results/downsampled_bam/{sample}_downsampled.bam"
-	conda : "B_environments/ATACMetabo_main_env.yaml"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """
         count=$(cat {input.nbreads})
         min=$(cat {input.downsampling_value})
@@ -176,19 +176,19 @@ rule peak_calling :
 	params :
 		prefix = "{sample}",
 		macs2_output_dir = "D_results/macs2_output"
-	conda : "B_environments/ATACMetabo_main_env.yaml"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ macs2 callpeak -t {input} -n {params.prefix} --outdir {params.macs2_output_dir} -f BAMPE -g hs -B --broad --broad-cutoff 0.1 """
 
 rule broadPeak_to_grange :
 	input : rules.peak_calling.output
 	output : "D_results/genomic_ranges/static_peaks/{sample}.gr.rds"
-	conda : "B_environments/ATACMetabo_main_env.yaml"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_scripts/GRanges.R from_broadPeak -o {output} {input} """
 
 rule static_peaks_intersection :
 	input : lambda wildcards : expand("D_results/genomic_ranges/static_peaks/{{condition}}_{{time}}_{donor}.gr.rds", donor=wildcards.donors.split(","))
 	output : "D_results/genomic_ranges/static_peaks/{condition}_{time}_{donors}.gr.rds"
-	conda : "B_environments/ATACMetabo_main_env.yaml"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_scripts/GRanges.R intersect -o {output} {input} """
 
 rule static_peaks_featureCounts :
@@ -198,7 +198,7 @@ rule static_peaks_featureCounts :
 	output :
 		readcount = "D_results/readCount_matrix/static_peaks/readcount_{condition}_{time}_{donors}.rds",
 		featurecounts = "D_results/readCount_matrix/static_peaks/featurecounts_{condition}_{time}_{donors}.txt"
-	conda : "B_environments/ATACMetabo_main_env.yaml"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """
         Rscript C_scripts/peaks_featureCounts.R \\
             --output_rds {output.readcount} \\
@@ -211,7 +211,7 @@ rule differential_peaks_union:
 		"D_results/genomic_ranges/static_peaks/{condition_time_1}_{donors_1}.gr.rds",
 		"D_results/genomic_ranges/static_peaks/{condition_time_2}_{donors_2}.gr.rds"
 	output: "D_results/genomic_ranges/differential_peaks/{condition_time_1}_{donors_1}_vs_{condition_time_2}_{donors_2}.gr.rds"
-	conda : "B_environments/ATACMetabo_main_env.yaml"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_scripts/GRanges.R union -o {output} {input} """
 
 rule differential_peaks_featureCounts :
@@ -222,7 +222,7 @@ rule differential_peaks_featureCounts :
 	output :
 		readcount = "D_results/readCount_matrix/differential_peaks/readcount_{condition_time_1}_{donors_1}_vs_{condition_time_2}_{donors_2}.rds",
 		featurecounts = "D_results/readCount_matrix/differential_peaks/featurecounts_{condition_time_1}_{donors_1}_vs_{condition_time_2}_{donors_2}.txt"
-	conda : "B_environments/ATACMetabo_main_env.yaml"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """
         Rscript C_scripts/peaks_featureCounts.R \\
             --output_rds {output.readcount} \\
