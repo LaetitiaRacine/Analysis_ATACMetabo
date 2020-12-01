@@ -1,8 +1,10 @@
 from snakemake.io import expand, glob_wildcards
 
+from collections import defaultdict
+from functools import partial
+
 LINK_TAB = {}
-SAMPLE = set()
-CONDITION_TIME = set()
+SAMPLE = defaultdict(partial(defaultdict, dict))
 
 import csv
 with open('link_tab.csv', mode='r') as file:
@@ -13,32 +15,86 @@ with open('link_tab.csv', mode='r') as file:
 		if use == "false":
 			continue
 
-		LINK_TAB["_".join((condition, time, donor))] = raw_file
-		SAMPLE.add("_".join((condition, time, donor)))
-		CONDITION_TIME.add("_".join((condition, time)))
+		#LINK_TAB["_".join((condition, time, donor))] = raw_file
+		#SAMPLE.add("_".join((condition, time, donor)))
 
-print(SAMPLE)
-print(CONDITION_TIME)
+		SAMPLE[condition][time][donor] = raw_file
+
+def list_sample():
+	result = []
+	for condition, times in SAMPLE.items():
+		for time, donors in times.items():
+			for donor, file in donors.items():
+				result.append("_".join((condition, time, donor)))
+	return result
+
+# Fonction qui liste les condition_time disponibles
+# Arguments optionnels, servent à restreindre la liste
+def list_condition_time(conditions_name=None, times_name=None):
+	result = []
+
+	conditions = SAMPLE.items()
+	if conditions_name is not None:
+		conditions = filter(lambda item : item[0] in conditions_name, conditions)
+	for condition, times in conditions:
+		times = times.items()
+		if times_name is not None:
+			times = filter(lambda item : item[0] in times_name, times)
+		for time, donors in times:
+			result.append(condition + "_" + time + "_" + ",".join(donors.keys()))
+	return result
+
+def list_unions():
+	result = []
+
+	# Comparaison de Xvivo avec tous les premiers points de temps des autres conditions
+	xvivo_condition_time = list_condition_time(["Xvivo"], ["00h"])[0]
+	for condition in SAMPLE.keys():
+		if condition == "Xvivo":
+			continue
+		condition_initial_time = sorted(list_condition_time([condition]))[0]
+		result.append(xvivo_condition_time + "_vs_" + condition_initial_time)
+
+	# Comparaison à un point de temps donné de MP aux autres conditions
+	conditions_but_mp = list(filter(lambda item: item != "MP", SAMPLE.keys()))
+	for mp_condition_time in list_condition_time(["MP"]):
+		time = mp_condition_time.split("_")[1]
+		for condition_time in list_condition_time(conditions_but_mp, [time]):
+			result.append(mp_condition_time + "_vs_" + condition_time)
+
+	# Comparaison entre poitns de temps au sein d'une condition
+	for condition in SAMPLE.keys():
+		condition_times = sorted(list_condition_time([condition]))
+		for i in range(len(condition_times) - 1):
+			result.append(condition_times[i] + "_vs_" + 	condition_times[i+1])
+
+	return result
+
+print(list_condition_time())
+print(list_sample())
+print(list_unions())
 
 wildcard_constraints:
 	donor="D\d+",
 	donors="D\d+(,D\d+)+",
 	sample="\w+_\d{2}h_D\d+"
 
+
+
 rule all :
 	input :
-		expand("D_results/downsampled_bam/{sample}_downsampled.bam", sample = SAMPLE),
-		expand("D_results/downsampled_bam/{sample}_downsampled.bam.bai", sample = SAMPLE),
+		expand("D_results/downsampled_bam/{sample}_downsampled.bam", sample = list_sample()),
+		expand("D_results/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_sample()),
 		"D_results/reports/nbreads_report.csv",
 		"D_results/reports/qc_report.csv",
-		# expand("D_results/macs2_output/{sample}_peaks.broadPeak", sample = SAMPLE),
-		expand("D_results/genomic_ranges/static_peaks/{sample}.gr.rds", sample = SAMPLE),
-		expand("D_results/genomic_ranges/static_peaks/{condition_time}_D1,D2,D3.gr.rds", condition_time = CONDITION_TIME),
-		expand("D_results/readCount_matrix/static_peaks/featurecounts_{condition_time}_D1,D2,D3.txt", condition_time = CONDITION_TIME)
+		expand("D_results/genomic_ranges/static_peaks/{sample}.gr.rds", sample = list_sample()),
+		expand("D_results/genomic_ranges/static_peaks/{condition_time}.gr.rds", condition_time = list_condition_time()),
+		expand("D_results/readCount_matrix/static_peaks/featurecounts_{condition_time}.txt", condition_time = list_condition_time()),
+		expand("D_results/readCount_matrix/differential_peaks/featurecounts_{union}.txt", union = list_unions())
 
 rule link_rename_raw :
-	input : lambda wildcards : "A_raw_data/bam_files/" + LINK_TAB[wildcards.sample]
-	output : "D_results/bam/{sample}.bam"
+	input : lambda wildcards : "A_raw_data/bam_files/" + SAMPLE[wildcards.condition][wildcards.time][wildcards.donor]
+	output : "D_results/bam/{condition}_{time}_{donor}.bam"
 	shell : """ ln -s "$(pwd)/{input}" {output} """
 
 # ====================
@@ -73,7 +129,7 @@ rule bam_indexing :
 #   It is updated only if the value changed
 #   So the downsampling is redone only if the value changed
 checkpoint bam_downsampling_value :
-	input : expand("D_results/bam/{sample}.bam.nbreads", sample = SAMPLE)
+	input : expand("D_results/bam/{sample}.bam.nbreads", sample = list_sample())
 	output : temp("D_results/downsampled_bam/downsampling_value_new")
 	params : output = "D_results/downsampled_bam/downsampling_value"
 	shell : """
@@ -152,11 +208,27 @@ rule static_peaks_featureCounts :
 
 rule differential_peaks_union:
 	input:
-		"D_results/genomic_ranges/static_peaks/{condition_time_1}.gr.rds",
-		"D_results/genomic_ranges/static_peaks/{condition_time_2}.gr.rds"
-	output: "D_results/genomic_ranges/differential_peaks/{condition_time_1}_vs_{condition_time_2}.gr.rds"
+		"D_results/genomic_ranges/static_peaks/{condition_time_1}_{donors_1}.gr.rds",
+		"D_results/genomic_ranges/static_peaks/{condition_time_2}_{donors_2}.gr.rds"
+	output: "D_results/genomic_ranges/differential_peaks/{condition_time_1}_{donors_1}_vs_{condition_time_2}_{donors_2}.gr.rds"
 	conda : "B_environments/ATACMetabo_main_env.yaml"
 	shell : """ Rscript C_scripts/GRanges.R union -o {output} {input} """
+
+rule differential_peaks_featureCounts :
+	input :
+		bam1 = lambda wildcards : expand("D_results/downsampled_bam/{{condition_time_1}}_{donor}_downsampled.bam", donor=wildcards.donors_1.split(",")),
+		bam2 = lambda wildcards : expand("D_results/downsampled_bam/{{condition_time_2}}_{donor}_downsampled.bam", donor=wildcards.donors_2.split(",")),
+		union = rules.differential_peaks_union.output
+	output :
+		readcount = "D_results/readCount_matrix/differential_peaks/readcount_{condition_time_1}_{donors_1}_vs_{condition_time_2}_{donors_2}.rds",
+		featurecounts = "D_results/readCount_matrix/differential_peaks/featurecounts_{condition_time_1}_{donors_1}_vs_{condition_time_2}_{donors_2}.txt"
+	conda : "B_environments/ATACMetabo_main_env.yaml"
+	shell : """
+        Rscript C_scripts/peaks_featureCounts.R \\
+            --output_rds {output.readcount} \\
+            --output_txt {output.featurecounts} \\
+            {input.union} {input.bam1} {input.bam2}
+        """
 
 # =======
 # Reports
@@ -164,9 +236,9 @@ rule differential_peaks_union:
 
 # Report on quality of original bam files
 rule qc_report :
-	input : expand("D_results/bam/{sample}.bam.qc", sample = SAMPLE)
+	input : expand("D_results/bam/{sample}.bam.qc", sample = list_sample())
 	output : "D_results/reports/qc_report.csv"
-	params : sample = SAMPLE
+	params : sample = list_sample()
 	shell : """
         sample=({params.sample})
         qc_files=({input})
@@ -177,9 +249,9 @@ rule qc_report :
 
 # Report on nbreads in all original bam files
 rule nbreads_prereport :
-	input : expand("D_results/bam/{sample}.bam.nbreads", sample = SAMPLE),
+	input : expand("D_results/bam/{sample}.bam.nbreads", sample = list_sample()),
 	output : "D_results/reports/nbreads_prereport.csv"
-	params : sample = SAMPLE
+	params : sample = list_sample()
 	shell : """
         sample=({params.sample})
         nbreads=($(cat {input}))
@@ -192,10 +264,10 @@ rule nbreads_prereport :
 # Report nbreads before and after nbreads for all bam files
 rule nbreads_report :
 	input :
-		before_downsampling = expand("D_results/bam/{sample}.bam.nbreads", sample = SAMPLE),
-		after_downsampling = expand("D_results/downsampled_bam/{sample}_downsampled.bam.nbreads", sample = SAMPLE)
+		before_downsampling = expand("D_results/bam/{sample}.bam.nbreads", sample = list_sample()),
+		after_downsampling = expand("D_results/downsampled_bam/{sample}_downsampled.bam.nbreads", sample = list_sample())
 	output : "D_results/reports/nbreads_report.csv"
-	params : sample = SAMPLE
+	params : sample = list_sample()
 	shell : """
         sample=({params.sample})
         nbreads_before=($(cat {input.before_downsampling}))
