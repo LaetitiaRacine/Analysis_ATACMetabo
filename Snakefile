@@ -230,6 +230,22 @@ rule differential_peaks_featureCounts :
             {input.union} {input.bam1} {input.bam2}
         """
 
+rule annotate_grange :
+	input :
+		annotations = "A_raw_data/Annotation_TSS_pm1kb_int_ex_53utr_ctcf_cpg_histo_gr.rda",
+		grange = "D_results/genomic_ranges/{folder}/{file}.gr.rds"
+	output :
+		grange_annot = "D_results/genomic_ranges/{folder}_annotated/{file}_ann.gr.rds",
+		csv_annot = "D_results/genomic_ranges/{folder}_annotated/{file}_ann.csv"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
+	shell : """
+        Rscript C_scripts/annotate_grange.R \\
+            --output_csv {output.csv_annot} \\
+            -a {input.annotations} \\
+            {input.grange} \\
+            {output.grange_annot}
+        """
+
 # =======
 # Reports
 # =======
