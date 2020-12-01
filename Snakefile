@@ -83,14 +83,19 @@ wildcard_constraints:
 
 rule all :
 	input :
-		expand("D_results/downsampled_bam/{sample}_downsampled.bam", sample = list_sample()),
-		expand("D_results/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_sample()),
-		"D_results/reports/nbreads_report.csv",
-		"D_results/reports/qc_report.csv",
-		expand("D_results/genomic_ranges/static_peaks/{sample}.gr.rds", sample = list_sample()),
-		expand("D_results/genomic_ranges/static_peaks/{condition_time}.gr.rds", condition_time = list_condition_time()),
-		expand("D_results/readCount_matrix/static_peaks/featurecounts_{condition_time}.txt", condition_time = list_condition_time()),
-		expand("D_results/readCount_matrix/differential_peaks/featurecounts_{union}.txt", union = list_unions())
+		# expand("D_results/downsampled_bam/{sample}_downsampled.bam", sample = list_sample()),
+		# expand("D_results/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_sample()),
+		# "D_results/reports/nbreads_report.csv",
+		# "D_results/reports/qc_report.csv",
+		# expand("D_results/genomic_ranges/static_peaks/{sample}.gr.rds", sample = list_sample()),
+		# expand("D_results/genomic_ranges/static_peaks/{condition_time}.gr.rds", condition_time = list_condition_time()),
+		# expand("D_results/readCount_matrix/static_peaks/featurecounts_{condition_time}.txt", condition_time = list_condition_time()),
+		# expand("D_results/readCount_matrix/differential_peaks/featurecounts_{union}.txt", union = list_unions())
+		expand("D_results/plots/{condition}_D1,D2,D3_total_nb_peaks.png", condition = ["MP", "AOA", "DDG", "DON"]),
+		expand("D_results/plots/{condition}_D1,D3_total_nb_peaks.png", condition = ["MP", "AOA", "DDG", "DON"]),
+		"D_results/plots/aK_total_nb_peaks.png",
+		"D_results/plots/VPA_total_nb_peaks.png"
+
 
 rule link_rename_raw :
 	input : lambda wildcards : "A_raw_data/bam_files/" + SAMPLE[wildcards.condition][wildcards.time][wildcards.donor]
@@ -245,6 +250,53 @@ rule annotate_grange :
             {input.grange} \\
             {output.grange_annot}
         """
+
+
+# =====
+# Plots
+# =====
+
+rule plot_totalpeaks_static :
+	input :
+		"D_results/genomic_ranges/static_peaks_annotated/Xvivo_00h_D1,D2,D3_ann.gr.rds",
+		lambda wildcards : expand("D_results/genomic_ranges/static_peaks_annotated/{{condition}}_{time}_{{donors}}_ann.gr.rds", time = SAMPLE[wildcards.condition].keys())
+	output : "D_results/plots/{condition}_{donors}_total_nb_peaks.png"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
+	shell : """
+        Rscript C_scripts/plot_totalpeaks_static.R \\
+            {output} \\
+            {input}
+        """
+
+rule plot_aK_totalpeaks_static :
+	input :
+		"D_results/genomic_ranges/static_peaks_annotated/Xvivo_00h_D1,D2,D3_ann.gr.rds",
+		"D_results/genomic_ranges/static_peaks_annotated/MP_24h_D1,D2,D3_ann.gr.rds",
+		"D_results/genomic_ranges/static_peaks_annotated/aK_24h_D4,D5,D6_ann.gr.rds"
+	output : "D_results/plots/aK_total_nb_peaks.png"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
+	shell : """
+        Rscript C_scripts/plot_totalpeaks_static.R \\
+            {output} \\
+            {input}
+        """
+
+ruleorder: plot_aK_totalpeaks_static > plot_totalpeaks_static
+
+rule plot_VPA_totalpeaks_static :
+	input :
+		"D_results/genomic_ranges/static_peaks_annotated/Xvivo_00h_D1,D2,D3_ann.gr.rds",
+		"D_results/genomic_ranges/static_peaks_annotated/MP_24h_D1,D2,D3_ann.gr.rds",
+		"D_results/genomic_ranges/static_peaks_annotated/VPA_24h_D4,D5,D6_ann.gr.rds"
+	output : "D_results/plots/VPA_total_nb_peaks.png"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
+	shell : """
+        Rscript C_scripts/plot_totalpeaks_static.R \\
+            {output} \\
+            {input}
+        """
+
+ruleorder: plot_VPA_totalpeaks_static > plot_totalpeaks_static
 
 # =======
 # Reports
