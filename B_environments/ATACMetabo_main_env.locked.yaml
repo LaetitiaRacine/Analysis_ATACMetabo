@@ -122,10 +122,11 @@ dependencies:
   - r-futile.options=1.0.1=r40h6115d3f_1002
   - r-generics=0.1.0=r40hc72bb7e_0
   - r-ggplot2=3.3.2=r40hc72bb7e_1
+  - r-ggthemes=4.2.0=r40h6115d3f_2
   - r-glue=1.4.2=r40hcdcec82_0
   - r-gtable=0.3.0=r40h6115d3f_3
   - r-httr=1.4.2=r40h6115d3f_0
-  - r-isoband=0.2.2=r40h0357c0b_0
+  - r-isoband=0.2.3=r40h03ef668_0
   - r-jsonlite=1.7.1=r40hcdcec82_0
   - r-labeling=0.4.2=r40h142f84f_0
   - r-lambda.r=1.2.4=r40h6115d3f_1
@@ -187,7 +188,7 @@ dependencies:
   - sysroot_linux-64=2.12=h77966d4_13
   - tk=8.6.10=hed695b0_1
   - tktable=2.10=hb7b940f_3
-  - wheel=0.35.1=pyh9f0ad1d_0
+  - wheel=0.36.0=pyhd3deb0d_0
   - xorg-kbproto=1.0.7=h14c3975_1002
   - xorg-libice=1.0.10=h516909a_0
   - xorg-libsm=1.2.3=h84519dc_1000

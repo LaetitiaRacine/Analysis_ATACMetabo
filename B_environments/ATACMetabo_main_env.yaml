@@ -10,6 +10,8 @@ dependencies:
   - r-base
   - r-docopt
   - r-dplyr
+  - r-ggplot2
+  - r-ggthemes
   - r-stringr
   - samtools
   - macs2
