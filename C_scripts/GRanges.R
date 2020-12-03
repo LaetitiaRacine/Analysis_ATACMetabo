@@ -16,24 +16,6 @@ Options:
 library(docopt)
 arguments <- docopt(doc)
 
-# # Test in RStudio (without using console)
-# ATAC_dir="/path/to/Analysis_ATACMetabo/"
-# broadPeak_dir=paste0(ATAC_dir, "D_results/macs2_output/")
-# gr_dir = paste0(ATAC_dir, "D_results/genomic_ranges/static_peaks/")
-# # Test from_broadPeak
-# arguments <- docopt(doc, args=c(
-#   "from_broadPeak",
-#   "-o", paste0(gr_dir, "MP_03h_D1.gr.rds"),
-#   paste0(broadPeak_dir, "MP_03h_D1_peaks.broadPeak")
-# ))
-# # Test intersec
-# arguments <- docopt(doc, args=c(
-#   "intersect",
-#   "-o", paste0(gr_dir, "MP_03h_D1,D2.gr.rds"),
-#   paste0(gr_dir, "MP_03h_D1.gr.rds"),
-#   paste0(gr_dir, "MP_03h_D2.gr.rds")
-# ))
-
 library(GenomicRanges)
 library(dplyr)
 library(stringr)

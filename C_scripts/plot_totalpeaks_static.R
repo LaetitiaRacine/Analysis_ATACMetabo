@@ -13,20 +13,6 @@ Options:
 library(docopt)
 arguments <- docopt(doc)
 
-# # Test in RStudio (without using console)
-# ATAC_dir="/path/to/Analysis_ATACMetabo/"
-# annotated_gr_dir=paste0(ATAC_dir, "D_results/genomic_ranges/static_peaks_annotated/")
-# output_dir=paste0(ATAC_dir, "D_results/plots/")
-# arguments <- docopt(doc, args=c(
-#   paste0(output_dir, "AOA_D1,D2,D3_total_nb_peaks.png"),
-#   paste0(annotated_gr_dir, "AOA_24h_D1,D2,D3_ann.gr.rds"),
-#   paste0(annotated_gr_dir, "AOA_12h_D1,D2,D3_ann.gr.rds")
-#   paste0(annotated_gr_dir, "AOA_06h_D1,D2,D3_ann.gr.rds"),
-#   paste0(annotated_gr_dir, "AOA_03h_D1,D2,D3_ann.gr.rds"),
-#   paste0(annotated_gr_dir, "Xvivo_00h_D1,D2,D3_ann.gr.rds")
-# ))
-
-
 #################################################################
 ################### Libraries ###################################
 #################################################################

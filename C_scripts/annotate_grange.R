@@ -14,28 +14,17 @@ Options:
 library(docopt)
 arguments <- docopt(doc)
 
-# # Test in RStudio (without using console)
-# ATAC_dir="/path/to/Analysis_ATACMetabo/"
-# gr_input_dir=paste0(ATAC_dir, "D_results/genomic_ranges/static_peaks/")
-# output_dir=paste0(ATAC_dir, "D_results/genomic_ranges/static_peaks_annotated/")
-# arguments <- docopt(doc, args=c(
-#   "--output_csv", paste0(output_dir, "AOA_24h_D1,D2,D3_ann.gr.csv"),
-#   "-a", paste0(ATAC_dir, "A_raw_data/Annotation_TSS_pm1kb_int_ex_53utr_ctcf_cpg_histo_gr.rda"),
-#   paste0(gr_input_dir, "AOA_24h_D1,D2,D3.gr.rds"),
-#   paste0(output_dir, "AOA_24h_D1,D2,D3_ann.gr.rds")
-# ))
-
 library(GenomicRanges)
 library(dplyr)
 # library(stringr)
 
 loadRData<-function(fileName){
-  #loads an RData file, and returns it  
+  #loads an RData file, and returns it
   load(fileName)
   get(ls()[ls()!="fileName"])
 }
 
-# the "big" file containing "all" the annotations 
+# the "big" file containing "all" the annotations
 all_annotations = loadRData(arguments$annotations_file)
 
 gr = readRDS(arguments$grange_input_file)

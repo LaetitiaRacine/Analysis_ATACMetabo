@@ -15,21 +15,6 @@ Options:
 library(docopt)
 arguments <- docopt(doc)
 
-# # Test in RStudio (without using console)
-# ATAC_dir="/path/to/Analysis_ATACMetabo/"
-# peaks_gr_dir=paste0(ATAC_dir, "D_results/genomic_ranges/static_peaks/")
-# bam_dir=paste0(ATAC_dir, "D_results/downsampled_bam/")
-# output_dir=paste0(ATAC_dir, "")
-# # Test 
-# arguments <- docopt(doc, args=c(
-#   "--output_rds", paste0(output_dir, "test.rds"),
-#   "--output_txt", paste0(output_dir, "test.txt"),
-#   paste0(peaks_gr_dir, "DON_06h_D1,D2,D3_gr.rds"),
-#   paste0(bam_dir, "DON_06h_D1_downsampled.bam"),
-#   paste0(bam_dir, "DON_06h_D2_downsampled.bam"),
-#   paste0(bam_dir, "DON_06h_D3_downsampled.bam")
-# ))
-
 library(Rsubread)
 
 peaks_gr_to_df = function(gr) {
