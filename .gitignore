@@ -1,9 +1,13 @@
 # Ignore Rhistory files :
 .Rhistory
 
+# Ignore Rplots.pdf files
+/Rplots.pdf
+
 # Ignore files created by snakemake
 /.snakemake/
 
 /A_raw_data/
+/C_scripts/tests.R
 /D_results/
 /link_tab.csv
