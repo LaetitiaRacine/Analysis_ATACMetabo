@@ -247,7 +247,7 @@ rule annotate_grange :
         """
 
 # =======
-# Reports
+# Reports and QC plots
 # =======
 
 # Report on quality of original bam files
@@ -277,7 +277,7 @@ rule nbreads_prereport :
         done >> {output}
         """
 
-# Report nbreads before and after nbreads for all bam files
+# Report nbreads before and nbreads after downsampling for all bam files
 rule nbreads_report :
 	input :
 		before_downsampling = expand("D_results/bam/{sample}.bam.nbreads", sample = list_sample()),
@@ -296,3 +296,28 @@ rule nbreads_report :
           echo "$cond,$time,$donor,${{nbreads_before[i]}},${{nbreads_after[i]}}"
         done >> {output}
         """
+
+# Draw QC plots from nbreads_reports
+# rule plot_qc_nbreads_report :
+# 	input : "D_results/reports/nbreads_report.csv"
+# 	output :
+# 		donor_before = "D_results/reports/plot_QC_CompDonor_nbreadsbeforedwn.png",
+# 		donor_after = "D_results/reports/plot_QC_CompDonor_nbreadsafterdwn.png",
+# 		manip_before = "D_results/reports/plot_QC_CompManip_nbreadsbeforedwn.png",
+# 		manip_after = "D_results/reports/plot_QC_CompManip_nbreadsafterdwn.png"
+# 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
+# 	shell : """
+#             Rscript C_scripts/plot_QC_variation.R -o {output.donor_before} comp_donor {input} "nbreads_before_downsampling"
+#             Rscript C_scripts/plot_QC_variation.R -o {output.donor_after} comp_donor {input} "nbreads_after_downsampling"
+#             Rscript C_scripts/plot_QC_variation.R -o {output.manip_before} comp_manip {input} "nbreads_before_downsampling"
+#             Rscript C_scripts/plot_QC_variation.R -o {output.manip_after} comp_manip {input} "nbreads_after_downsampling"
+#             """
+
+rule plot_qc_nbreads_report :
+	wildcard_constraints:
+		comp="comp_donor|comp_manip",
+		colname="[a-z_]+"
+	input : "D_results/reports/nbreads_report.csv"
+	output : "D_results/reports/plot_QC_{comp}_{colname}.png",
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_scripts/plot_QC_variation.R -o {output} {wildcards.comp} {input} {wildcards.colname} """
