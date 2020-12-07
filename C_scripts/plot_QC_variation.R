@@ -24,6 +24,7 @@ arguments <- docopt(doc)
 #########################
 
 library(ggplot2)
+library(viridis)
 
 df_report = read.csv2(arguments$reportcsv_file, sep = ",")
 
@@ -44,7 +45,7 @@ if (arguments$comp_donor) {
 }
 
 hist_report = ggplot(df_report, aes(x = var_x, y = var_y, fill = var_fill)) +
-  geom_col(color = "black", width = 0.7, position = position_dodge(width = 0.8)) +
+  geom_col(color = "black", width = 0.7, position = position_dodge2(width = 0.8, preserve = "single")) +
   theme(legend.position = "right",
         plot.title = element_text(hjust = 0.5, face = "bold", colour= "black", size = 16),
         strip.text.x = element_text(size=11, color="black", face="bold.italic"),
@@ -53,13 +54,13 @@ hist_report = ggplot(df_report, aes(x = var_x, y = var_y, fill = var_fill)) +
         axis.ticks.y = element_line() ,
         axis.title.y = element_text(vjust = 1 ,size = 14),
         axis.title.x = element_blank(),
-        axis.text.x = element_text(vjust = 6, size = 11, colour = "black"),
+        axis.text.x = element_text(vjust = 5, size = 11, colour = "black"),
         axis.ticks = element_blank()) +
   facet_wrap(var_facet, scales = "free_x") +
   ggtitle(var_title) +
   labs(y = var_ylegend, fill = var_legendtitle) +
-  scale_fill_viridis_d()
+  scale_fill_viridis(option="plasma", discrete = TRUE)
 
 ggsave(plot = hist_report,
        filename = arguments$output,
-       width = 10, height = 9)
+       width = 16*0.75, height = 9*0.75)
