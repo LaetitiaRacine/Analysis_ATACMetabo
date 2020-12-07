@@ -288,8 +288,11 @@ rule nbreads_report :
         sample=({params.sample})
         nbreads_before=($(cat {input.before_downsampling}))
         nbreads_after=($(cat {input.after_downsampling}))
-        echo "SAMPLE;NBREADS BEFORE DOWNSAMPLING;NBREADS AFTER DOWNSAMPLING" > {output}
+        echo "condition,time,donor,nbreads_before_downsampling,nbreads_after_downsampling" > {output}
         for ((i=0;i<${{#sample[*]}};++i)); do
-          echo "${{sample[i]}};${{nbreads_before[i]}};${{nbreads_after[i]}}"
+          cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
+          time=$(echo "${{sample[i]}}" | cut -d_ -f2)
+          donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
+          echo "$cond,$time,$donor,${{nbreads_before[i]}},${{nbreads_after[i]}}"
         done >> {output}
         """
