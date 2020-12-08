@@ -91,6 +91,10 @@ rule all :
 		expand("D_results/genomic_ranges/static_peaks/{condition_time}.gr.rds", condition_time = list_condition_time()),
 		expand("D_results/readCount_matrix/static_peaks/featurecounts_{condition_time}.txt", condition_time = list_condition_time()),
 		expand("D_results/readCount_matrix/differential_peaks/featurecounts_{union}.txt", union = list_unions())
+	  # "D_results/reports/plot_QC_comp_donor_nbreads_before_downsampling.png",
+	  # "D_results/reports/plot_QC_comp_donor_nbreads_after_downsampling.png",
+	  # "D_results/reports/plot_QC_comp_manip_nbreads_before_downsampling.png",
+	  # "D_results/reports/plot_QC_comp_manip_nbreads_after_downsampling.png"
 
 rule link_rename_raw :
 	input : lambda wildcards : "A_raw_data/bam_files/" + SAMPLE[wildcards.condition][wildcards.time][wildcards.donor]
@@ -301,10 +305,10 @@ rule nbreads_report :
 # rule plot_qc_nbreads_report :
 # 	input : "D_results/reports/nbreads_report.csv"
 # 	output :
-# 		donor_before = "D_results/reports/plot_QC_CompDonor_nbreadsbeforedwn.png",
-# 		donor_after = "D_results/reports/plot_QC_CompDonor_nbreadsafterdwn.png",
-# 		manip_before = "D_results/reports/plot_QC_CompManip_nbreadsbeforedwn.png",
-# 		manip_after = "D_results/reports/plot_QC_CompManip_nbreadsafterdwn.png"
+# 		donor_before = "D_results/reports/plot_QC_comp_donor_nbreads_before_downsampling.png",
+# 		donor_after = "D_results/reports/plot_QC_comp_donor_nbreads_after_downsampling.png",
+# 		manip_before = "D_results/reports/plot_QC_comp_manip_nbreads_before_downsampling.png",
+# 		manip_after = "D_results/reports/plot_QC_comp_manip_nbreads_after_downsampling.png"
 # 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 # 	shell : """
 #             Rscript C_scripts/plot_QC_variation.R -o {output.donor_before} comp_donor {input} "nbreads_before_downsampling"
