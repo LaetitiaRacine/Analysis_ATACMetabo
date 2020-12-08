@@ -13,5 +13,6 @@ dependencies:
   - r-ggplot2
   - r-ggthemes
   - r-stringr
+  - r-viridis
   - samtools
   - macs2
