@@ -88,7 +88,7 @@ rule all :
 		expand("D_results/genomic_ranges/static_peaks/{sample}.gr.rds", sample = list_sample()),
 		expand("D_results/genomic_ranges/static_peaks/{condition_time}.gr.rds", condition_time = list_condition_time()),
 		expand("D_results/readCount_matrix/static_peaks/featurecounts_{condition_time}.txt", condition_time = list_condition_time()),
-		expand("D_results/readCount_matrix/differential_peaks/featurecounts_{union}.txt", union = list_unions())
+		#expand("D_results/readCount_matrix/differential_peaks/featurecounts_{union}.txt", union = list_unions())
 	  # "D_results/reports/plot_QC_comp_donor_nbreads_before_downsampling.png",
 	  # "D_results/reports/plot_QC_comp_donor_nbreads_after_downsampling.png",
 	  # "D_results/reports/plot_QC_comp_manip_nbreads_before_downsampling.png",
@@ -256,112 +256,89 @@ rule all :
 # Reports and QC plots
 # =======
 
-# # Report on quality of original bam files
-# rule qc_report :
-# 	input : expand("D_results/bam/{sample}.bam.qc", sample = list_sample())
-# 	output : "D_results/reports/qc_report.csv"
-# 	params : sample = list_sample()
-# 	shell : """
-#         sample=({params.sample})
-#         qc_files=({input})
-#         for ((i=0;i<${{#sample[*]}};++i)); do
-#           echo -e "${{sample[i]}}\n$(cat ${{qc_files[i]}})"
-#         done >> {output}
-#         """
-#
-# # Report on nbreads in all original bam files
-# rule nbreads_prereport :
-# 	input : expand("D_results/bam/{sample}.bam.nbreads", sample = list_sample()),
-# 	output : "D_results/reports/nbreads_prereport.csv"
-# 	params : sample = list_sample()
-# 	shell : """
-#         sample=({params.sample})
-#         nbreads=($(cat {input}))
-#         echo "SAMPLE;NBREADS BEFORE DOWNSAMPLING" > {output}
-#         for ((i=0;i<${{#sample[*]}};++i)); do
-#           echo "${{sample[i]}};${{nbreads[i]}}"
-#         done >> {output}
-#         """
+# Report on quality of original bam files
+rule qc_report :
+	input : expand("D_results/bam/{sample}.bam.qc", sample = list_sample())
+	output : "D_results/reports/qc_report.csv"
+	params : sample = list_sample()
+	shell : """
+        sample=({params.sample})
+        qc_files=({input})
+        echo "condition,time,donor,QCP_nb_read,QCP_secondary,QCP_supplementary,QCP_duplicates,QCP_nb_mapped,QCP_pct_mapped,QCP_paired_in_sequencing,QCP_read1,QCP_read2,QCP_nb_properly_paired,QCP_pct_properly_paired,QCP_with_itself_and_mate_mapped,QCP_nb_singletons,QCP_pct_singletons,QCP_with_mate_mapped_to_a_different_chr,QCP_with_mate_mapped_to_a_different_chr_mapQ_over_5,QCF_nb_read,QCF_secondary,QCF_supplementary,QCF_duplicates,QCF_nb_mapped,QCF_pct_mapped,QCF_paired_in_sequencing,QCF_read1,QCF_read2,QCF_nb_properly_paired,QCF_pct_properly_paired,QCF_with_itself_and_mate_mapped,QCF_nb_singletons,QCF_pct_singletons,QCF_with_mate_mapped_to_a_different_chr,QCF_with_mate_mapped_to_a_different_chr_mapQ_over_5" > {output}
+        for ((i=0;i<${{#sample[*]}};++i)); do
+          cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
+          time=$(echo "${{sample[i]}}" | cut -d_ -f2)
+          donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
+          qc_info=$(cat "${{qc_files[i]}}" | awk -F$'\t' '{{ print $1","$2 }}' | paste -sd ',' -)
+          echo -e "${{cond}},${{time}},${{donor}},${{qc_info}}"
+        done >> {output}
+        """
 
-# Report nbreads before and nbreads after downsampling for all bam files
-# rule nbreads_report :
-# 	input :
-# 		before_downsampling = expand("D_results/bam/{sample}.bam.nbreads", sample = list_sample()),
-# 		after_downsampling = expand("D_results/downsampled_bam/{sample}_downsampled.bam.nbreads", sample = list_sample())
-# 	output : "D_results/reports/nbreads_report.csv"
-# 	params : sample = list_sample()
-# 	shell : """
-#         sample=({params.sample})
-#         nbreads_before=($(cat {input.before_downsampling}))
-#         nbreads_after=($(cat {input.after_downsampling}))
-#         echo "condition,time,donor,nbreads_before_downsampling,nbreads_after_downsampling" > {output}
-#         for ((i=0;i<${{#sample[*]}};++i)); do
-#           cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
-#           time=$(echo "${{sample[i]}}" | cut -d_ -f2)
-#           donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
-#           echo "$cond,$time,$donor,${{nbreads_before[i]}},${{nbreads_after[i]}}"
-#         done >> {output}
-#         """
+# Report on nbreads in all original bam files
+rule nbreads_prereport :
+	input : expand("D_results/bam/{sample}.bam.nbreads", sample = list_sample()),
+	output : "D_results/reports/nbreads_prereport.csv"
+	params : sample = list_sample()
+	shell : """
+        sample=({params.sample})
+        nbreads=($(cat {input}))
+        echo "SAMPLE;NBREADS BEFORE DOWNSAMPLING" > {output}
+        for ((i=0;i<${{#sample[*]}};++i)); do
+          echo "${{sample[i]}};${{nbreads[i]}}"
+        done >> {output}
+        """
 
-# Draw QC plots from nbreads_reports
-# rule plot_qc_nbreads_report :
-# 	wildcard_constraints:
-# 		comp="comp_donor|comp_manip",
-# 		colname="[a-z_]+"
-# 	input : "D_results/reports/nbreads_report.csv"
-# 	output : "D_results/reports/plot_QC_{comp}_{colname}.png",
-# 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
-# 	shell : """ Rscript C_scripts/plot_QC_variation.R -o {output} {wildcards.comp} {input} {wildcards.colname} """
-
-# plot histogram   # avec script R modifié !
-rule plot_qc_nbreads_nbpeaks_report :
-	wildcard_constraints:
-		format="hist_donor|hist_manip|line_cond",
-		colname="[a-z_]+"
-	input : "D_results/reports/nbreads_nbpeaks_report.csv"
-	output : "D_results/reports/plot_QC_{format}_{colname}.png",
-	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
-	shell : """ Rscript C_scripts/plot_QC_variation.R -o {output} {wildcards.format} {input} {wildcards.colname} """
-
-# rule nbpeaks_report :
-# 	input : expand("D_results/macs2_output/{sample}_peaks.broadPeak", sample = list_sample())
-# 	output : "D_results/reports/nbpeaks_report.csv"
-# 	shell : """
-# 	params : sample = list_sample()
-# 	shell : """
-#         sample=({params.sample})
-#         nbpeaks=($(wc -l {input}))
-#         echo "condition,time,donor,nbpeaks" > {output}
-#         for ((i=0;i<${{#sample[*]}};++i)); do
-#           cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
-#           time=$(echo "${{sample[i]}}" | cut -d_ -f2)
-#           donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
-#           echo "$cond,$time,$donor,${{nbpeaks[i]}}"
-#         done >> {output}
-# 	"""
-
-
-# PB : relance tout le pipeline avec les peaks calling... même avec ancient je ne comprends pas
-# reason: Input files updated by another job: D_results/downsampled_bam/MP_06h_D2_downsampled.bam
-# quand on utilise --touch : aucune règle n'est exécutée
-
-rule nbreads_nbpeaks_report :
+# Report on nbreads before and after downsampling for all bam files
+rule nbreads_report :
 	input :
 		before_downsampling = expand("D_results/bam/{sample}.bam.nbreads", sample = list_sample()),
-		after_downsampling = expand("D_results/downsampled_bam/{sample}_downsampled.bam.nbreads", sample = list_sample()),
-		nb_peaks = expand("D_results/macs2_output/{sample}_peaks.broadPeak", sample = list_sample())
-	output : "D_results/reports/nbreads_nbpeaks_report.csv"
+		after_downsampling = expand("D_results/downsampled_bam/{sample}_downsampled.bam.nbreads", sample = list_sample())
+	output : "D_results/reports/nbreads_report.csv"
 	params : sample = list_sample()
 	shell : """
         sample=({params.sample})
         nbreads_before=($(cat {input.before_downsampling}))
         nbreads_after=($(cat {input.after_downsampling}))
-		nbpeaks=($(wc -l {input.nb_peaks} | awk '{{ print $1 }}'))
-        echo "condition,time,donor,nbreads_before_downsampling,nbreads_after_downsampling,nbpeaks" > {output}
+        echo "condition,time,donor,nbreads_before_downsampling,nbreads_after_downsampling" > {output}
         for ((i=0;i<${{#sample[*]}};++i)); do
           cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
           time=$(echo "${{sample[i]}}" | cut -d_ -f2)
           donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
-          echo "$cond,$time,$donor,${{nbreads_before[i]}},${{nbreads_after[i]}},${{nbpeaks[i]}}"
+          echo "$cond,$time,$donor,${{nbreads_before[i]}},${{nbreads_after[i]}}"
         done >> {output}
         """
+
+# PB : relance tout le pipeline avec les peaks calling... même avec ancient je ne comprends pas
+# reason: Input files updated by another job: D_results/downsampled_bam/MP_06h_D2_downsampled.bam
+# quand on utilise --touch : aucune règle n'est exécutée
+
+# Report on nb_peaks in each sample following peak_calling rule
+rule nbpeaks_report :
+	input : expand("D_results/macs2_output/{sample}_peaks.broadPeak", sample = list_sample())
+	output : "D_results/reports/nbpeaks_report.csv"
+	params : sample = list_sample()
+	shell : """
+        sample=({params.sample})
+        nbpeaks=($(wc -l {input.nb_peaks} | awk '{{ print $1 }}'))
+        echo "condition,time,donor,nbpeaks" > {output}
+        for ((i=0;i<${{#sample[*]}};++i)); do
+          cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
+          time=$(echo "${{sample[i]}}" | cut -d_ -f2)
+          donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
+          echo "$cond,$time,$donor,${{nbpeaks[i]}}"
+        done >> {output}
+	"""
+
+# Draw QC plots from nbreads_report.csv and nb_peaks_report.csv
+rule plot_reports :
+	wildcard_constraints:
+		format="hist_donor|hist_manip|line_cond",
+		colname="[a-z_]+",
+		reportname="[a-z_]+"
+	input :"D_results/reports/{reportname}.csv"
+	output : "D_results/reports/plot_{format}_{reportname}:{colname}.png",
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_scripts/plot_QC_variation.R -o {output} {wildcards.format} {input} {wildcards.colname}
+			"""
+
+# Draw QC plots from ....
