@@ -15,8 +15,8 @@ Options:
 library(docopt)
 arguments <- docopt(doc)
 
-library(Rsubread)
-
+suppressPackageStartupMessages(suppressWarnings(library(Rsubread))
+                               
 peaks_gr_to_df = function(gr) {
   peaks_df = data.frame(peaks_gr, stringsAsFactors = FALSE)
   peaks_df$seqnames = as.character(peaks_df$seqnames) # enlever le factor

@@ -16,9 +16,11 @@ Options:
 library(docopt)
 arguments <- docopt(doc)
 
-library(GenomicRanges)
-library(dplyr)
-library(stringr)
+suppressPackageStartupMessages({
+  suppressWarnings(library(stringr))
+  suppressWarnings(library(GenomicRanges))
+  suppressWarnings(library(dplyr))
+})
 
 read_peaks_from_macs2 = function(file_path){
 

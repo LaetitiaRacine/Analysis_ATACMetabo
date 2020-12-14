@@ -23,9 +23,11 @@ arguments <- docopt(doc)
 ### Chargement librairies et fichier input
 #########################
 
-library(ggplot2)
-library(viridis)
-library(dplyr)  # nécessaire si ajout graphique line
+suppressPackageStartupMessages({
+  suppressWarnings(library(ggplot2))
+  suppressWarnings(library(viridis))
+  suppressWarnings(library(dplyr))
+})
 
 df_report = read.csv2(arguments$reportcsv_file, sep = ",")
 

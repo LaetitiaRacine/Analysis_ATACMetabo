@@ -14,8 +14,10 @@ Options:
 library(docopt)
 arguments <- docopt(doc)
 
-library(GenomicRanges)
-library(dplyr)
+suppressPackageStartupMessages({
+  suppressWarnings(library(GenomicRanges))
+  suppressWarnings(library(dplyr))
+})
 # library(stringr)
 
 loadRData<-function(fileName){

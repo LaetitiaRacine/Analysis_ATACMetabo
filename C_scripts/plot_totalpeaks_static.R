@@ -17,11 +17,13 @@ arguments <- docopt(doc)
 ################### Libraries ###################################
 #################################################################
 
-library(GenomicRanges)
-library(ggplot2)
-library(ggthemes)
-library(stringr)
-library(dplyr)
+suppressPackageStartupMessages({
+  suppressWarnings(library(ggplot2))
+  suppressWarnings(library(GenomicRanges))
+  suppressWarnings(library(dplyr))
+  suppressWarnings(library(ggthemes))
+  suppressWarnings(library(stringr))
+})
 
 list_gr = lapply(arguments$annotated_gr, readRDS)
 
