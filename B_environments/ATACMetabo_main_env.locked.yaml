@@ -7,7 +7,7 @@ dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=1_gnu
   - _r-mutex=1.0.1=anacondar_1
-  - binutils_impl_linux-64=2.35.1=h17ad2fc_0
+  - binutils_impl_linux-64=2.35.1=h193b22a_1
   - binutils_linux-64=2.35=hc3fd857_29
   - bioconductor-annotate=1.68.0=r40_0
   - bioconductor-annotationdbi=1.52.0=r40_0
@@ -43,6 +43,7 @@ dependencies:
   - gettext=0.19.8.1=h0b5b191_1005
   - gfortran_impl_linux-64=7.5.0=hfca37b7_17
   - gfortran_linux-64=7.5.0=ha081f1e_29
+  - glib=2.66.3=h9c3ff4c_1
   - graphite2=1.3.13=h58526e2_1001
   - gsl=2.6=he838d99_1
   - gxx_impl_linux-64=7.5.0=h64c220c_13
@@ -53,7 +54,7 @@ dependencies:
   - jpeg=9d=h36c2ea0_0
   - kernel-headers_linux-64=2.6.32=h77966d4_13
   - krb5=1.17.2=h926e7f8_0
-  - ld_impl_linux-64=2.35.1=hed1e6ac_0
+  - ld_impl_linux-64=2.35.1=hea4e1c9_1
   - libblas=3.8.0=17_openblas
   - libcblas=3.8.0=17_openblas
   - libcurl=7.71.1=hcdd3856_8
@@ -82,8 +83,8 @@ dependencies:
   - macs2=2.2.7.1=py38h0213d0e_1
   - make=4.3=hd18ef5c_1
   - ncurses=6.2=h58526e2_4
-  - numpy=1.19.4=py38hf0fd68c_1
-  - openssl=1.1.1h=h516909a_0
+  - numpy=1.19.4=py38h18fd61f_2
+  - openssl=1.1.1i=h7f98852_0
   - pango=1.42.4=h69149e4_5
   - pcre=8.44=he1b5a44_0
   - pcre2=10.35=h032f7d1_2
@@ -94,8 +95,8 @@ dependencies:
   - python_abi=3.8=1_cp38
   - r-askpass=1.1=r40hcdcec82_2
   - r-assertthat=0.2.1=r40h6115d3f_2
-  - r-backports=1.2.0=r40h9e2df91_0
-  - r-base=4.0.3=he481d28_2
+  - r-backports=1.2.1=r40hcfec24a_0
+  - r-base=4.0.2=he766273_1
   - r-bh=1.72.0_3=r40h6115d3f_1
   - r-bit=4.0.4=r40hcdcec82_0
   - r-bit64=4.0.5=r40hcdcec82_0
@@ -128,7 +129,7 @@ dependencies:
   - r-gtable=0.3.0=r40h6115d3f_3
   - r-httr=1.4.2=r40h6115d3f_0
   - r-isoband=0.2.3=r40h03ef668_0
-  - r-jsonlite=1.7.1=r40hcdcec82_0
+  - r-jsonlite=1.7.2=r40hcfec24a_0
   - r-labeling=0.4.2=r40h142f84f_0
   - r-lambda.r=1.2.4=r40h6115d3f_1
   - r-lattice=0.20_41=r40hcdcec82_2
@@ -137,7 +138,7 @@ dependencies:
   - r-magrittr=2.0.1=r40h9e2df91_1
   - r-mass=7.3_53=r40hcdcec82_0
   - r-matrix=1.2_18=r40h7fa42b6_3
-  - r-matrixstats=0.57.0=r40hcdcec82_0
+  - r-matrixstats=0.57.0=r40hcfec24a_0
   - r-memoise=1.1.0=r40h6115d3f_1004
   - r-mgcv=1.8_33=r40h7fa42b6_0
   - r-mime=0.9=r40hcdcec82_1
@@ -179,7 +180,7 @@ dependencies:
   - r-viridislite=0.3.0=r40h6115d3f_1003
   - r-waldo=0.2.3=r40hc72bb7e_0
   - r-withr=2.3.0=r40h6115d3f_0
-  - r-xml=3.99_0.3=r40hcdcec82_1
+  - r-xml=3.99_0.5=r40hcfec24a_0
   - r-xtable=1.8_4=r40h6115d3f_3
   - r-zeallot=0.1.0=r40h6115d3f_1002
   - readline=8.0=he28a2e2_2
@@ -188,9 +189,9 @@ dependencies:
   - setuptools=49.6.0=py38h924ce5b_2
   - sqlite=3.34.0=h74cdb3f_0
   - sysroot_linux-64=2.12=h77966d4_13
-  - tk=8.6.10=hed695b0_1
+  - tk=8.6.10=h21135ba_1
   - tktable=2.10=hb7b940f_3
-  - wheel=0.36.1=pyhd3deb0d_0
+  - wheel=0.36.2=pyhd3deb0d_0
   - xorg-kbproto=1.0.7=h14c3975_1002
   - xorg-libice=1.0.10=h516909a_0
   - xorg-libsm=1.2.3=h84519dc_1000
@@ -205,4 +206,3 @@ dependencies:
   - xz=5.2.5=h516909a_1
   - zlib=1.2.11=h516909a_1010
   - zstd=1.4.5=h6597ccf_2
-prefix: /home/rparmentier/miniconda3/envs/ATACMetabo_main_env
