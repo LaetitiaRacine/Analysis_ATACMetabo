@@ -1,3 +1,7 @@
+
+# commande pour lancer le script (se placer dans le dossier):
+# snakemake --use-conda --reason --cores 8
+
 from snakemake.io import expand, glob_wildcards
 from collections import defaultdict
 from functools import partial
@@ -81,20 +85,32 @@ wildcard_constraints:
 
 rule all :
 	input :
-		### Test bloc 2
+		### Test bloc 2 ###
+		# Files
 		expand("D_results/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_sample()),
 		expand("D_results/genomic_ranges/static_peaks/{sample}.gr.rds", sample = list_sample()),
+		expand("D_results/macs2_output/{sample}.threshold.broadPeak", sample = list_sample()),
+		# Reports
 		"D_results/reports/qc_report.csv",
 		"D_results/reports/nbreads_report.csv",
 		"D_results/reports/nbpeaks_report.csv",
-		"D_results/reports/plot_hist_donor_qc_report:QCP_nb_read.png",
-		"D_results/reports/plot_hist_donor_nbreads_report:nbreads_before_downsampling.png",
-		"D_results/reports/plot_hist_manip_nbreads_report:nbreads_before_downsampling.png",
-		"D_results/reports/plot_hist_donor_nbreads_report:nbreads_after_downsampling.png",
-		"D_results/reports/plot_hist_manip_nbreads_report:nbreads_after_downsampling.png",
-		"D_results/reports/plot_hist_donor_nbpeaks_report:nbpeaks.png",
-		"D_results/reports/plot_hist_manip_nbpeaks_report:nbpeaks.png",
-		"D_results/reports/plot_line_cond_nbpeaks_report:nbpeaks.png"
+		"D_results/reports/nbreads_per_peak_report.csv",
+		# Graph
+		"D_results/reports/qc_report_plot_hist_donor:QCP_nb_mapped.png",
+		"D_results/reports/qc_report_plot_hist_manip:QCP_nb_mapped.png",
+		"D_results/reports/nbreads_report_plot_hist_donor:nbreads_before_downsampling.png",
+		"D_results/reports/nbreads_report_plot_hist_manip:nbreads_before_downsampling.png",
+		"D_results/reports/nbreads_report_plot_hist_donor:nbreads_after_downsampling.png",
+		"D_results/reports/nbreads_report_plot_hist_manip:nbreads_after_downsampling.png",
+		"D_results/reports/nbpeaks_report_plot_hist_manip:lost_percentage.png",
+		"D_results/reports/nbpeaks_report_plot_hist_manip:nbpeaks_before_threshold.png",
+		"D_results/reports/nbpeaks_report_plot_hist_manip:nbpeaks_after_threshold.png",
+		"D_results/reports/nbpeaks_report_plot_hist_donor:lost_percentage.png",
+		"D_results/reports/nbpeaks_report_plot_hist_donor:nbpeaks_before_threshold.png",
+		"D_results/reports/nbpeaks_report_plot_hist_donor:nbpeaks_after_threshold.png",
+		"D_results/reports/nbpeaks_report_plot_line_cond:nbpeaks_before_threshold.png",
+		"D_results/reports/nbpeaks_report_plot_line_cond:nbpeaks_after_threshold.png",
+		"D_results/reports/nbreads_per_peak_report_plot_read_graph:nbreads.png"
 		### Test bloc 3
 		# expand("D_results/readCount_matrix/static_peaks/featurecounts_{condition_time}.txt", condition_time = list_condition_time()),
 		# expand("D_results/readCount_matrix/differential_peaks/featurecounts_{union}.txt", union = list_unions())
@@ -104,8 +120,7 @@ rule all :
 #*** Bloc 1 : Alignment of FASTQ => BAM
 #*******************************************************************************************************************************************************
 
-# cf script Sophie
-
+# cf script Sophie    Ex : C001LBL
 
 #*******************************************************************************************************************************************************
 #*** Bloc 2 : Individual study and QC of each sample
@@ -203,6 +218,41 @@ rule broadPeak_to_grange :
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_scripts/GRanges.R from_broadPeak -o {output} {input} """
 
+# 1) On a un fichier .broadPeak avant threshold et un fichier grange avant threshold.
+# 2) Pour pouvoir faire le threshold, on a besoin de connaître les peaks à enlever donc il faut la readcount matrix créée à partir de grange
+
+rule readcount_matrix :
+	input :
+		gr = "D_results/genomic_ranges/static_peaks/{sample}.gr.rds",
+		bam = "D_results/downsampled_bam/{sample}_downsampled.bam"
+	output : "D_results/genomic_ranges/static_peaks/{sample}.readcount.csv"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_scripts/peaks_featureCounts.R --output_csv {output} {input.gr} {input.bam}"""
+
+# 3) A partir du fichier csv créé dans readcount matrix, on peut extraire une liste de peak à enlever.
+# 4) On applique ensuite le threshold sur le .broadPeak à partir de la liste de peaks récupérés.
+
+rule qc_peaks_threshold :
+	input :
+		peaks_broadPeak = "D_results/macs2_output/{sample}_peaks.broadPeak",
+		peaks_readcount = "D_results/genomic_ranges/static_peaks/{sample}.readcount.csv"
+	output : "D_results/macs2_output/{sample}.threshold.broadPeak"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_scripts/peaks_filter.R {input.peaks_broadPeak} {input.peaks_readcount} {output} """
+
+# 5) On réutilise la rule broadPeak_to_grange pour créer un grange.threshold
+
+# En sortie de cette partie on a donc :
+# - fichier .broadPeak avant threshold
+# - fichier .grange avant threshold
+# - fichier readcount.csv avec le nombre de reads/peaks avant threshold
+# - fichier .broadPeak après threshold
+# - fichier .grange après threshold
+
+# 6) On va faire un report à partir des fichiers .broadPeak avant/après threshold => graphiques
+# 7) On va faire un report avec tous les readcount à la suite pour ensuite tracer des graphiques en facet wrap (un par condition)
+
+
 # =======
 # Reports and QC plots
 # =======
@@ -215,7 +265,13 @@ rule qc_report :
 	shell : """
         sample=({params.sample})
         qc_files=({input})
-        echo "condition,time,donor,QCP_nb_read,QCF_nb_read,QCP_secondary,QCF_secondary,QCP_supplementary,QCF_supplementary,QCP_duplicates,QCF_duplicates,QCP_nb_mapped,QCF_nb_mapped,QCP_pct_mapped,QCF_pct_mapped,QCP_paired_in_sequencing,QCF_paired_in_sequencing,QCP_read1,QCF_read1,QCP_read2,QCF_read2,QCP_nb_properly_paired,QCF_nb_properly_paired,QCP_pct_properly_paired,QCF_pct_properly_paired,QCP_with_itself_and_mate_mapped,QCF_with_itself_and_mate_mapped,QCP_nb_singletons,QCF_nb_singletons,QCP_pct_singletons,QCF_pct_singletons,QCP_with_mate_mapped_to_a_different_chr,QCF_with_mate_mapped_to_a_different_chr,QCP_with_mate_mapped_to_a_different_chr_mapQ_over_5,QCF_with_mate_mapped_to_a_different_chr_mapQ_over_5" > {output}
+        echo "condition,time,donor,QCP_nb_read,QCF_nb_read,QCP_secondary,QCF_secondary,QCP_supplementary, \\
+			QCF_supplementary,QCP_duplicates,QCF_duplicates,QCP_nb_mapped,QCF_nb_mapped,QCP_pct_mapped, \\
+			QCF_pct_mapped,QCP_paired_in_sequencing,QCF_paired_in_sequencing,QCP_read1,QCF_read1,QCP_read2, \\
+			QCF_read2,QCP_nb_properly_paired,QCF_nb_properly_paired,QCP_pct_properly_paired,QCF_pct_properly_paired, \\
+			QCP_with_itself_and_mate_mapped,QCF_with_itself_and_mate_mapped,QCP_nb_singletons,QCF_nb_singletons, \\
+			QCP_pct_singletons,QCF_pct_singletons,QCP_with_mate_mapped_to_a_different_chr,QCF_with_mate_mapped_to_a_different_chr, \\
+			QCP_with_mate_mapped_to_a_different_chr_mapQ_over_5,QCF_with_mate_mapped_to_a_different_chr_mapQ_over_5" > {output}
         for ((i=0;i<${{#sample[*]}};++i)); do
           cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
           time=$(echo "${{sample[i]}}" | cut -d_ -f2)
@@ -267,33 +323,78 @@ rule nbreads_report :
 # quand on utilise --touch : aucune règle n'est exécutée
 
 # Report on nb_peaks in each sample following peak_calling rule
+# rule nbpeaks_report :
+# 	input : expand("D_results/macs2_output/{sample}_peaks.broadPeak", sample = list_sample())
+# 	output : "D_results/reports/nbpeaks_report.csv"
+# 	params : sample = list_sample()
+# 	shell : """
+#         sample=({params.sample})
+#         nbpeaks=($(wc -l {input} | awk '{{ print $1 }}'))
+#         echo "condition,time,donor,nbpeaks" > {output}
+#         for ((i=0;i<${{#sample[*]}};++i)); do
+#           cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
+#           time=$(echo "${{sample[i]}}" | cut -d_ -f2)
+#           donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
+#           echo "$cond,$time,$donor,${{nbpeaks[i]}}"
+#         done >> {output}nbreads_per_peak_report
+# 	"""
+
+# ATTENTION bash ne gère pas les nombres à virgule, il faut utiliser bc -l
+# OK fonctionne
 rule nbpeaks_report :
-	input : expand("D_results/macs2_output/{sample}_peaks.broadPeak", sample = list_sample())
+	input :
+	    before_threshold = expand("D_results/macs2_output/{sample}_peaks.broadPeak", sample = list_sample()),
+		after_threshold = expand("D_results/macs2_output/{sample}.threshold.broadPeak", sample = list_sample())
 	output : "D_results/reports/nbpeaks_report.csv"
 	params : sample = list_sample()
 	shell : """
         sample=({params.sample})
-        nbpeaks=($(wc -l {input} | awk '{{ print $1 }}'))
-        echo "condition,time,donor,nbpeaks" > {output}
+        nbpeaks_before=($(wc -l {input.before_threshold} | awk '{{ print $1 }}'))
+        nbpeaks_after=($(wc -l {input.after_threshold} | awk '{{ print $1 }}'))
+        echo "condition,time,donor,nbpeaks_before_threshold,nbpeaks_after_threshold,lost_percentage" > {output}
         for ((i=0;i<${{#sample[*]}};++i)); do
           cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
           time=$(echo "${{sample[i]}}" | cut -d_ -f2)
           donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
-          echo "$cond,$time,$donor,${{nbpeaks[i]}}"
-        done >> {output}
+		  pct=$(echo "scale=4; (${{nbpeaks_before[i]}}-${{nbpeaks_after[i]}})/${{nbpeaks_before[i]}}*100" | bc -l)
+		  echo "$cond,$time,$donor,${{nbpeaks_before[i]}},${{nbpeaks_after[i]}},$pct"
+	    done >> {output}
 	"""
 
+rule nbreads_per_peak_report :
+	input : expand("D_results/genomic_ranges/static_peaks/{sample}.readcount.csv", sample = list_sample())
+	output : "D_results/reports/nbreads_per_peak_report.csv"
+	#conda : ...
+	shell : """ cat {input} > {output} """
+
 # Draw QC plots from nbreads_report.csv and nb_peaks_report.csv
+# rule plot_reports :
+# 	wildcard_constraints:
+# 		format="hist_donor|hist_manip|line_cond",
+# 		colname="[a-zA-Z_]+",
+# 		reportname="[a-z_]+"
+# 	input :"D_results/reports/{reportname}.csv"
+# 	output : "D_results/reports/plot_{format}_{reportname}:{colname}.png",
+# 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
+# 	shell : """ Rscript C_scripts/plot_QC_variation.R -o {output} {wildcards.format} {input} {wildcards.colname} """
+
+
+# Modif format d'enregistrement : nom du report au début => à tester
 rule plot_reports :
 	wildcard_constraints:
-		format="hist_donor|hist_manip|line_cond",
+		format="hist_donor|hist_manip|line_cond|read_graph",
 		colname="[a-zA-Z_]+",
 		reportname="[a-z_]+"
 	input :"D_results/reports/{reportname}.csv"
-	output : "D_results/reports/plot_{format}_{reportname}:{colname}.png",
+	output : "D_results/reports/{reportname}_plot_{format}:{colname}.png",
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
-	shell : """ Rscript C_scripts/plot_QC_variation.R -o {output} {wildcards.format} {input} {wildcards.colname}
-			"""
+	shell : """ Rscript C_scripts/plot_QC_variation.R -o {output} {wildcards.format} {input} {wildcards.colname} """
+
+
+
+
+
+
 
 #*******************************************************************************************************************************************************
 #*** Bloc 3 : Crossed study of samples

@@ -1,6 +1,6 @@
 
 #########################
-### Création d'une ligne de commande pour appel du script via la console
+### Command line to call the script in linux consol
 #########################
 
 "Quality control graph : histogram/line plot representing one column of the tab (y) with 3 indications (x, fill, facet)
@@ -9,6 +9,7 @@ Usage:
   plot_QC_variation.R [options] hist_donor <reportcsv_file> <colname>
   plot_QC_variation.R [options] hist_manip <reportcsv_file> <colname>
   plot_QC_variation.R [options] line_cond <reportcsv_file> <colname>
+  plot_QC_variation.R [options] read_graph <reportcsv_file>
   plot_QC_variation.R -h | --help
   
 Options:
@@ -19,20 +20,22 @@ Options:
 library(docopt)
 arguments <- docopt(doc)
 
+
 #########################
-### Chargement librairies et fichier input
+### Libraries and input loading
 #########################
 
 suppressPackageStartupMessages({
   suppressWarnings(library(ggplot2))
   suppressWarnings(library(viridis))
   suppressWarnings(library(dplyr))
+  suppressWarnings(library(ggforce))
 })
 
 df_report = read.csv2(arguments$reportcsv_file, sep = ",")
 
 #########################
-### Histogram plot
+### Histogram plot : facet donor or time, all conditions in one graph
 #########################
 
 if (arguments$hist_donor | arguments$hist_manip) {
@@ -126,3 +129,41 @@ if (arguments$line_cond) {
   
 }  
 
+
+#########################
+### Nbreads plot : y peaks count, x nbreads 
+#########################
+
+if (arguments$read_graph) {
+  
+df_report = df_report %>%
+  dplyr::mutate(condition_time_donor = paste(condition, time, donor, sep="_")) %>%
+  dplyr::select(-time, -donor, -peakID) 
+
+var_x = as.integer(df_report$nbreads)
+var_ylegend = "Number of peaks"
+
+pdf(width = 16*0.75, height = 9*0.75, file = arguments$output)
+for(i in 1:4) {
+  print(ggplot(df_report, aes(x=var_x, fill = condition)) +
+          geom_histogram(color = "black", position = position_dodge2(width = 0.8, preserve = "single"))+
+          geom_vline(xintercept = 10, color ="red", linetype = "dashed", size = 1)+ 
+          theme(legend.position = "right",
+                plot.title = element_text(hjust = 0.5, face = "bold", colour= "black", size = 16),
+                strip.text.x = element_text(size=11, color="black", face="bold.italic"),
+                axis.line.y = element_line(colour = "black"),
+                axis.text.y = element_text(size = 11, colour = "black"),
+                axis.ticks.y = element_line() ,
+                axis.title.y = element_text(vjust = 1 ,size = 14),
+                axis.title.x = element_blank(),
+                axis.text.x = element_text(vjust = 5, size = 11, colour = "black"),
+                axis.ticks = element_blank()) +
+          xlim(c(0,200)) +
+          facet_wrap_paginate(condition_time_donor~., scales = "free_x", ncol = 4, nrow = 4, page = i) +
+          #ggtitle(var_title) +
+          labs(y = var_ylegend) 
+        )
+    }
+dev.off()
+
+}

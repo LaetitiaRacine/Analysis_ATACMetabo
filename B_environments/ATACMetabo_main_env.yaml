@@ -10,9 +10,11 @@ dependencies:
   - r-base
   - r-docopt
   - r-dplyr
+  - r-ggforce
   - r-ggplot2
   - r-ggthemes
   - r-stringr
+  - r-tidyr
   - r-viridis
   - samtools
   - macs2
