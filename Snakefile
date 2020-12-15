@@ -215,7 +215,7 @@ rule qc_report :
 	shell : """
         sample=({params.sample})
         qc_files=({input})
-        echo "condition,time,donor,QCP_nb_read,QCP_secondary,QCP_supplementary,QCP_duplicates,QCP_nb_mapped,QCP_pct_mapped,QCP_paired_in_sequencing,QCP_read1,QCP_read2,QCP_nb_properly_paired,QCP_pct_properly_paired,QCP_with_itself_and_mate_mapped,QCP_nb_singletons,QCP_pct_singletons,QCP_with_mate_mapped_to_a_different_chr,QCP_with_mate_mapped_to_a_different_chr_mapQ_over_5,QCF_nb_read,QCF_secondary,QCF_supplementary,QCF_duplicates,QCF_nb_mapped,QCF_pct_mapped,QCF_paired_in_sequencing,QCF_read1,QCF_read2,QCF_nb_properly_paired,QCF_pct_properly_paired,QCF_with_itself_and_mate_mapped,QCF_nb_singletons,QCF_pct_singletons,QCF_with_mate_mapped_to_a_different_chr,QCF_with_mate_mapped_to_a_different_chr_mapQ_over_5" > {output}
+        echo "condition,time,donor,QCP_nb_read,QCF_nb_read,QCP_secondary,QCF_secondary,QCP_supplementary,QCF_supplementary,QCP_duplicates,QCF_duplicates,QCP_nb_mapped,QCF_nb_mapped,QCP_pct_mapped,QCF_pct_mapped,QCP_paired_in_sequencing,QCF_paired_in_sequencing,QCP_read1,QCF_read1,QCP_read2,QCF_read2,QCP_nb_properly_paired,QCF_nb_properly_paired,QCP_pct_properly_paired,QCF_pct_properly_paired,QCP_with_itself_and_mate_mapped,QCF_with_itself_and_mate_mapped,QCP_nb_singletons,QCF_nb_singletons,QCP_pct_singletons,QCF_pct_singletons,QCP_with_mate_mapped_to_a_different_chr,QCF_with_mate_mapped_to_a_different_chr,QCP_with_mate_mapped_to_a_different_chr_mapQ_over_5,QCF_with_mate_mapped_to_a_different_chr_mapQ_over_5" > {output}
         for ((i=0;i<${{#sample[*]}};++i)); do
           cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
           time=$(echo "${{sample[i]}}" | cut -d_ -f2)
@@ -291,10 +291,6 @@ rule plot_reports :
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_scripts/plot_QC_variation.R -o {output} {wildcards.format} {input} {wildcards.colname}
 			"""
-
-# Draw QC plots from ....
-
-
 
 #*******************************************************************************************************************************************************
 #*** Bloc 3 : Crossed study of samples
