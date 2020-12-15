@@ -233,9 +233,12 @@ rule nbreads_prereport :
 	shell : """
         sample=({params.sample})
         nbreads=($(cat {input}))
-        echo "SAMPLE;NBREADS BEFORE DOWNSAMPLING" > {output}
+        echo "condition,time,donor,nbreads_before_downsampling" > {output}
         for ((i=0;i<${{#sample[*]}};++i)); do
-          echo "${{sample[i]}};${{nbreads[i]}}"
+          cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
+          time=$(echo "${{sample[i]}}" | cut -d_ -f2)
+          donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
+          echo "$cond,$time,$donor,${{nbreads[i]}}"
         done >> {output}
         """
 
