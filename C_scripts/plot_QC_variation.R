@@ -3,7 +3,7 @@
 ### Création d'une ligne de commande pour appel du script via la console
 #########################
 
-"Quality control graph : graph from report nbreads before/after downsampling
+"Quality control graph : histogram/line plot representing one column of the tab (y) with 3 indications (x, fill, facet)
 
 Usage:
   plot_QC_variation.R [options] hist_donor <reportcsv_file> <colname>
@@ -105,6 +105,7 @@ if (arguments$line_cond) {
     geom_line(aes(color = var_fill), size = 1)+
     geom_point(aes(color = var_fill), size = 2)+
     theme(legend.position = "right",
+          legend.title=element_blank(),
           plot.title = element_text(hjust = 0.5, face = "bold", colour= "black", size = 16),
           strip.text.x = element_text(size=11, color="black", face="bold.italic"),
           axis.line.y = element_line(colour = "black"),
@@ -116,9 +117,9 @@ if (arguments$line_cond) {
           axis.ticks = element_blank()) +
     facet_wrap(var_facet, scales = "free_x") +
     ggtitle(var_title) +
-    labs(y = var_ylegend, group = var_legendtitle) +
+    labs(y = var_ylegend) +
     scale_color_viridis(option="plasma", discrete = TRUE, begin = 0, end = 0.5)
-  
+    
   ggsave(plot = line_report,
          filename = arguments$output,
          width = 16*0.75, height = 9*0.75)
