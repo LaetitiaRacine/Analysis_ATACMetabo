@@ -110,7 +110,7 @@ rule all :
 		"D_results/reports/nbpeaks_report_plot_hist_donor:nbpeaks_after_threshold.png",
 		"D_results/reports/nbpeaks_report_plot_line_cond:nbpeaks_before_threshold.png",
 		"D_results/reports/nbpeaks_report_plot_line_cond:nbpeaks_after_threshold.png",
-		"D_results/reports/nbreads_per_peak_report_plot_read_graph:nbreads.png"
+		"D_results/reports/nbreads_per_peak_report_plot_read_graph:nbreads.pdf"
 		### Test bloc 3
 		# expand("D_results/readCount_matrix/static_peaks/featurecounts_{condition_time}.txt", condition_time = list_condition_time()),
 		# expand("D_results/readCount_matrix/differential_peaks/featurecounts_{union}.txt", union = list_unions())
@@ -129,10 +129,6 @@ rule all :
 # PB : relance tout le pipeline avec les peaks calling à chaque fois... même avec ancient je ne comprends pas
 # reason: Input files updated by another job: D_results/downsampled_bam/MP_06h_D2_downsampled.bam
 # quand on utilise --touch : aucune règle n'est exécutée
-
-
-
-
 
 rule link_rename_raw :
 	input : lambda wildcards : "A_raw_data/bam_files/" + SAMPLE[wildcards.condition][wildcards.time][wildcards.donor]
@@ -242,7 +238,7 @@ rule readcount_matrix :
 #### Test avec ancient pour voir si ça bloque le lancement de la règle peak calling
 rule qc_peaks_threshold :
 	input :
-		peaks_broadPeak = ancient("D_results/macs2_output/{sample}_peaks.broadPeak"),
+		peaks_broadPeak = "D_results/macs2_output/{sample}_peaks.broadPeak",
 		peaks_readcount = "D_results/genomic_ranges/static_peaks/{sample}.readcount.csv"
 	output : "D_results/macs2_output/{sample}.threshold.broadPeak"
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
@@ -306,6 +302,7 @@ rule nbreads_prereport :
         done >> {output}
         """
 
+# Ok fonctionne bien et avec virgule comme séparateur
 # Report on nbreads before and after downsampling for all bam files
 rule nbreads_report :
 	input :
@@ -327,7 +324,7 @@ rule nbreads_report :
         """
 
 # ATTENTION bash ne gère pas les nombres à virgule, il faut utiliser bc -l
-# OK fonctionne
+# OK fonctionne bien et avec virgule comme séparateur
 rule nbpeaks_report :
 	input :
 	    before_threshold = expand("D_results/macs2_output/{sample}_peaks.broadPeak", sample = list_sample()),
@@ -348,18 +345,12 @@ rule nbpeaks_report :
 	    done >> {output}
 	"""
 
+# Ok fonctionne bien et avec virgule en séparateur
 rule nbreads_per_peak_report :
 	input : expand("D_results/genomic_ranges/static_peaks/{sample}.readcount.csv", sample = list_sample())
 	output : "D_results/reports/nbreads_per_peak_report.csv"
 	#conda : ...
-	shell : """ awk ' FNR==1 && NR!=1 {{while (/<header>) getline}} 1 {print}' {input} > {output} """
-
-	# """ cat {input} > {output} """
-# enlever la première ligne ! sinon on a condition_time_donor dans les levels
-# awk ' FNR==1 && NR!=1 { while (/<header>) getline; } 1 {print}' {input} > {output}
-# https://unix.stackexchange.com/questions/60577/concatenate-multiple-files-with-same-header
-
-
+	shell : """ awk ' FNR==1 && NR!=1 {{next}}{{print}}' {input} > {output} """  # pour enlever le header qui restait avec cat {input} > {output}
 
 
 # Draw QC plots from nbreads_report.csv and nb_peaks_report.csv
@@ -367,9 +358,10 @@ rule plot_reports :
 	wildcard_constraints:
 		format="hist_donor|hist_manip|line_cond|read_graph",
 		colname="[a-zA-Z_]+",
-		reportname="[a-z_]+"
+		reportname="[a-z_]+",
+		extension="png|pdf"
 	input :"D_results/reports/{reportname}.csv"
-	output : "D_results/reports/{reportname}_plot_{format}:{colname}.png",
+	output : "D_results/reports/{reportname}_plot_{format}:{colname}.{extension}",
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_scripts/plot_QC_variation.R -o {output} {wildcards.format} {input} {wildcards.colname} """
 

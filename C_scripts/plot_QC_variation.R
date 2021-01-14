@@ -9,7 +9,7 @@ Usage:
   plot_QC_variation.R [options] hist_donor <reportcsv_file> <colname>
   plot_QC_variation.R [options] hist_manip <reportcsv_file> <colname>
   plot_QC_variation.R [options] line_cond <reportcsv_file> <colname>
-  plot_QC_variation.R [options] read_graph <reportcsv_file>
+  plot_QC_variation.R [options] read_graph <reportcsv_file> <colname>
   plot_QC_variation.R -h | --help
   
 Options:
