@@ -88,8 +88,9 @@ rule all :
 		### Test bloc 2 ###
 		# Files
 		expand("D_results/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_sample()),
-		expand("D_results/genomic_ranges/static_peaks/{sample}.gr.rds", sample = list_sample()),
-		expand("D_results/macs2_output/{sample}.threshold.broadPeak", sample = list_sample()),
+		expand("D_results/genomic_ranges/static_peaks/{sample}_peaks.gr.rds", sample = list_sample()),
+		expand("D_results/genomic_ranges/static_peaks/{sample}.threshold.gr.rds", sample = list_sample()),
+		expand("D_results/macs2_output/{sample}.threshold.broadPeak", sample = list_sample())
 		# Reports
 		"D_results/reports/qc_report.csv",
 		"D_results/reports/nbreads_report.csv",
@@ -215,46 +216,35 @@ rule peak_calling :
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ macs2 callpeak -t {input} -n {params.prefix} --outdir {params.macs2_output_dir} -f BAMPE -g hs -B --broad --broad-cutoff 0.1 """
 
-rule broadPeak_to_grange :
-	input : rules.peak_calling.output
-	output : "D_results/genomic_ranges/static_peaks/{sample}.gr.rds"
+rule broadPeak_to_csv :
+	wildcard_constraints :
+		name="_peaks|.threshold"
+	input : "D_results/macs2_output/{sample}{name}.broadPeak"
+	output : "D_results/macs2_output/{sample}{name}.df.csv"
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
-	shell : """ Rscript C_scripts/GRanges.R from_broadPeak -o {output} {input} """
-
-# 1) On a un fichier .broadPeak avant threshold et un fichier grange avant threshold.
-# 2) Pour pouvoir faire le threshold, on a besoin de connaître les peaks à enlever donc il faut la readcount matrix créée à partir de grange
+	shell : """ Rscript C_scripts/broadPeak_to_csv.R {input} {output}"""
 
 rule readcount_matrix :
 	input :
-		gr = "D_results/genomic_ranges/static_peaks/{sample}.gr.rds",
+		csv = "D_results/macs2_output/{sample}_peaks.df.csv",
 		bam = "D_results/downsampled_bam/{sample}_downsampled.bam"
-	output : "D_results/genomic_ranges/static_peaks/{sample}.readcount.csv"
+	output : "D_results/macs2_output/{sample}.readcount.csv"
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
-	shell : """ Rscript C_scripts/peaks_featureCounts.R --output_csv {output} {input.gr} {input.bam}"""
+	shell : """ Rscript C_scripts/peaks_featureCounts.R --output_csv {output} {input.csv} {input.bam}"""
 
-# 3) A partir du fichier csv créé dans readcount matrix, on peut extraire une liste de peak à enlever.
-# 4) On applique ensuite le threshold sur le .broadPeak à partir de la liste de peaks récupérés.
-
-#### Test avec ancient pour voir si ça bloque le lancement de la règle peak calling
 rule qc_peaks_threshold :
 	input :
 		peaks_broadPeak = "D_results/macs2_output/{sample}_peaks.broadPeak",
-		peaks_readcount = "D_results/genomic_ranges/static_peaks/{sample}.readcount.csv"
+		readcount_matrix = "D_results/macs2_output/{sample}.readcount.csv"
 	output : "D_results/macs2_output/{sample}.threshold.broadPeak"
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
-	shell : """ Rscript C_scripts/peaks_filter.R {input.peaks_broadPeak} {input.peaks_readcount} {output} """
+	shell : """ Rscript C_scripts/peaks_filter.R {input.peaks_broadPeak} {input.readcount_matrix} {output} """
 
-# 5) On réutilise la rule broadPeak_to_grange pour créer un grange.threshold
-
-# En sortie de cette partie on a donc :
-# - fichier .broadPeak avant threshold
-# - fichier .grange avant threshold
-# - fichier readcount.csv avec le nombre de reads/peaks avant threshold
-# - fichier .broadPeak après threshold
-# - fichier .grange après threshold
-
-# 6) On va faire un report à partir des fichiers .broadPeak avant/après threshold => graphiques
-# 7) On va faire un report avec tous les readcount à la suite pour ensuite tracer des graphiques en facet wrap (un par condition)
+rule create_grange :
+	input : "D_results/macs2_output/{name}.df.csv"
+	output : "D_results/genomic_ranges/static_peaks/{name}.gr.rds"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_scripts/GRanges.R from_csv -o {output} {input} """
 
 
 # =======
@@ -364,10 +354,6 @@ rule plot_reports :
 	output : "D_results/reports/{reportname}_plot_{format}:{colname}.{extension}",
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_scripts/plot_QC_variation.R -o {output} {wildcards.format} {input} {wildcards.colname} """
-
-
-
-
 
 
 #*******************************************************************************************************************************************************

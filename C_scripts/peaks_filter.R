@@ -25,8 +25,8 @@ arguments <- docopt(doc)
 
 suppressPackageStartupMessages(suppressWarnings(library(dplyr)))
 
-peaks_bP = read.table(arguments$broadPeak_input, stringsAsFactors = FALSE)                   # load .broadPeak file
-peaks_readcount = read.csv2(arguments$csv_input, sep = ";")                                  # load .csv readcount matrix file
+peaks_bP = read.table(arguments$broadPeak_input, sep = "\t", stringsAsFactors = FALSE)                   # load .broadPeak file
+peaks_readcount = read.csv2(arguments$csv_input, sep = ",")                                  # load .csv readcount matrix file
 
 
 ########################
@@ -43,5 +43,5 @@ peaks_bP_threshold = peaks_bP %>%
   dplyr::filter(V4 %in% peaks_to_keep)                                                       # keep lines from original broadPeak that passed the threshold
 
 print("Save .threshold.broadPeak file")  
-write.table(peaks_bP_threshold, file = arguments$output, sep = ";", quote = FALSE)           # save threshold.broadPeak file
+write.table(peaks_bP_threshold, file = arguments$output, sep ="\t", quote = FALSE)           # save threshold.broadPeak file
 
