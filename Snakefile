@@ -126,6 +126,14 @@ rule all :
 #*** Bloc 2 : Individual study and QC of each sample
 #*******************************************************************************************************************************************************
 
+# PB : relance tout le pipeline avec les peaks calling à chaque fois... même avec ancient je ne comprends pas
+# reason: Input files updated by another job: D_results/downsampled_bam/MP_06h_D2_downsampled.bam
+# quand on utilise --touch : aucune règle n'est exécutée
+
+
+
+
+
 rule link_rename_raw :
 	input : lambda wildcards : "A_raw_data/bam_files/" + SAMPLE[wildcards.condition][wildcards.time][wildcards.donor]
 	output : "D_results/bam/{condition}_{time}_{donor}.bam"
@@ -152,7 +160,6 @@ rule bam_indexing :
 	output : "{file}.bam.bai"
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ samtools index {input} > {output} """
-
 
 # ================
 # BAM downsampling
@@ -232,9 +239,10 @@ rule readcount_matrix :
 # 3) A partir du fichier csv créé dans readcount matrix, on peut extraire une liste de peak à enlever.
 # 4) On applique ensuite le threshold sur le .broadPeak à partir de la liste de peaks récupérés.
 
+#### Test avec ancient pour voir si ça bloque le lancement de la règle peak calling
 rule qc_peaks_threshold :
 	input :
-		peaks_broadPeak = "D_results/macs2_output/{sample}_peaks.broadPeak",
+		peaks_broadPeak = ancient("D_results/macs2_output/{sample}_peaks.broadPeak"),
 		peaks_readcount = "D_results/genomic_ranges/static_peaks/{sample}.readcount.csv"
 	output : "D_results/macs2_output/{sample}.threshold.broadPeak"
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
@@ -318,27 +326,6 @@ rule nbreads_report :
         done >> {output}
         """
 
-# PB : relance tout le pipeline avec les peaks calling... même avec ancient je ne comprends pas
-# reason: Input files updated by another job: D_results/downsampled_bam/MP_06h_D2_downsampled.bam
-# quand on utilise --touch : aucune règle n'est exécutée
-
-# Report on nb_peaks in each sample following peak_calling rule
-# rule nbpeaks_report :
-# 	input : expand("D_results/macs2_output/{sample}_peaks.broadPeak", sample = list_sample())
-# 	output : "D_results/reports/nbpeaks_report.csv"
-# 	params : sample = list_sample()
-# 	shell : """
-#         sample=({params.sample})
-#         nbpeaks=($(wc -l {input} | awk '{{ print $1 }}'))
-#         echo "condition,time,donor,nbpeaks" > {output}
-#         for ((i=0;i<${{#sample[*]}};++i)); do
-#           cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
-#           time=$(echo "${{sample[i]}}" | cut -d_ -f2)
-#           donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
-#           echo "$cond,$time,$donor,${{nbpeaks[i]}}"
-#         done >> {output}nbreads_per_peak_report
-# 	"""
-
 # ATTENTION bash ne gère pas les nombres à virgule, il faut utiliser bc -l
 # OK fonctionne
 rule nbpeaks_report :
@@ -365,21 +352,17 @@ rule nbreads_per_peak_report :
 	input : expand("D_results/genomic_ranges/static_peaks/{sample}.readcount.csv", sample = list_sample())
 	output : "D_results/reports/nbreads_per_peak_report.csv"
 	#conda : ...
-	shell : """ cat {input} > {output} """
+	shell : """ awk ' FNR==1 && NR!=1 {{while (/<header>) getline}} 1 {print}' {input} > {output} """
+
+	# """ cat {input} > {output} """
+# enlever la première ligne ! sinon on a condition_time_donor dans les levels
+# awk ' FNR==1 && NR!=1 { while (/<header>) getline; } 1 {print}' {input} > {output}
+# https://unix.stackexchange.com/questions/60577/concatenate-multiple-files-with-same-header
+
+
+
 
 # Draw QC plots from nbreads_report.csv and nb_peaks_report.csv
-# rule plot_reports :
-# 	wildcard_constraints:
-# 		format="hist_donor|hist_manip|line_cond",
-# 		colname="[a-zA-Z_]+",
-# 		reportname="[a-z_]+"
-# 	input :"D_results/reports/{reportname}.csv"
-# 	output : "D_results/reports/plot_{format}_{reportname}:{colname}.png",
-# 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
-# 	shell : """ Rscript C_scripts/plot_QC_variation.R -o {output} {wildcards.format} {input} {wildcards.colname} """
-
-
-# Modif format d'enregistrement : nom du report au début => à tester
 rule plot_reports :
 	wildcard_constraints:
 		format="hist_donor|hist_manip|line_cond|read_graph",
@@ -389,7 +372,6 @@ rule plot_reports :
 	output : "D_results/reports/{reportname}_plot_{format}:{colname}.png",
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_scripts/plot_QC_variation.R -o {output} {wildcards.format} {input} {wildcards.colname} """
-
 
 
 
