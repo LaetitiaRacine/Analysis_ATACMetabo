@@ -36,7 +36,7 @@ suppressPackageStartupMessages({
 
 if (arguments$from_csv) { 
   ### Transform df.csv file from broadPeak into GRange object
-  df_csv = read.table(arguments$csv_file, sep=",", header = TRUE, stringsAsFactors = FALSE)
+  df_csv = read.table(arguments$csv_file, sep=";", header = TRUE, stringsAsFactors = FALSE)
   hg19_seqlengths = c("chr1"=249250621, "chr10"=135534747, "chr11"=135006516, "chr12"=133851895, "chr13"=115169878,
                       "chr14"=107349540, "chr15"=102531392, "chr16"=90354753, "chr17"=81195210, "chr18"=78077248,
                       "chr19"=59128983, "chr2"=243199373, "chr20"=63025520, "chr21"=48129895, "chr22"=51304566,

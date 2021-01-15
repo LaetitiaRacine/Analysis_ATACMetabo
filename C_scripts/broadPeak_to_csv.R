@@ -45,4 +45,4 @@ broad_df <- broad_df %>%
                          test_chr == FALSE ~ paste0("chr", Chr)))  %>% # If no "chr" are printed in chr column, adds it before chr number
   dplyr::select(-test_chr, -test_chrM)      
 
-write.table(broad_df, file = arguments$output, sep = ",", row.names = FALSE) 
+write.table(broad_df, file = arguments$output, sep = ";", row.names = FALSE) 

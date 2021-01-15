@@ -26,7 +26,7 @@ arguments <- docopt(doc)
 suppressPackageStartupMessages(suppressWarnings(library(dplyr)))
 
 peaks_bP = read.table(arguments$broadPeak_input, sep = "\t", stringsAsFactors = FALSE)                   # load .broadPeak file
-peaks_readcount = read.csv2(arguments$csv_input, sep = ",")                                  # load .csv readcount matrix file
+peaks_readcount = read.csv2(arguments$csv_input, sep = ";")                                  # load .csv readcount matrix file
 
 
 ########################

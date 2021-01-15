@@ -32,7 +32,7 @@ suppressPackageStartupMessages({
   suppressWarnings(library(ggforce))
 })
 
-df_report = read.csv2(arguments$reportcsv_file, sep = ",")
+df_report = read.csv2(arguments$reportcsv_file, sep = ";")
 
 #########################
 ### Histogram plot : facet donor or time, all conditions in one graph
@@ -156,7 +156,7 @@ for(i in 1:4) {
                 axis.ticks.y = element_line() ,
                 axis.title.y = element_text(vjust = 1 ,size = 14),
                 axis.title.x = element_blank(),
-                axis.text.x = element_text(vjust = 5, size = 11, colour = "black"),
+                axis.text.x = element_text(vjust = -0.5, size = 11, colour = "black"),
                 axis.ticks = element_blank()) +
           xlim(c(0,200)) +
           facet_wrap_paginate(condition_time_donor~., scales = "free_x", ncol = 4, nrow = 4, page = i) +

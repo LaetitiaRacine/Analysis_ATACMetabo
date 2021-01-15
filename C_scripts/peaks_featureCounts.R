@@ -30,7 +30,7 @@ suppressPackageStartupMessages({
   suppressWarnings(library(dplyr))
 })
 
-df = read.table(arguments$csv_input, sep=",", header = TRUE, stringsAsFactors = FALSE)
+df = read.table(arguments$csv_input, sep=";", header = TRUE, stringsAsFactors = FALSE)
 
 #**********************
 # Scrit to create readcount_matrix
@@ -61,5 +61,5 @@ if (!is.null(arguments$output_csv)) {
   count_df = tidyr::separate(count_df, col = name, into = c("condition","time","donor", "peak", "num"), sep="_", remove = TRUE) 
   count_df = tidyr::unite(count_df, col = peakID, peak, num, sep="_", remove = TRUE)
   colnames(count_df) = c("condition","time","donor","peakID","nbreads")
-  write.table(count_df, file = arguments$output_csv, sep = ",", row.names = FALSE) 
+  write.table(count_df, file = arguments$output_csv, sep = ";", row.names = FALSE) 
 }
