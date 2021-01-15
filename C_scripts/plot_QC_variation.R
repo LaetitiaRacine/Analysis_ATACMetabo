@@ -47,7 +47,7 @@ if (arguments$hist_donor | arguments$hist_manip) {
   if (arguments$hist_donor) {
     var_facet = donor~.
     var_fill = df_report$time
-    var_legendtitle = "Time spent in culture after stimulation"
+    var_legendtitle = "Time spent in culture \n after stimulation"
     var_title = "Inter-donor variability"
   } else if (arguments$hist_manip) {
     var_facet = time~.

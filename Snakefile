@@ -65,7 +65,7 @@ def list_unions():
 		for condition_time in list_condition_time(conditions_but_mp, [time]):
 			result.append(mp_condition_time + "_vs_" + condition_time)
 
-	# Comparaison entre poitns de temps au sein d'une condition
+	# Comparaison entre points de temps au sein d'une condition
 	for condition in SAMPLE.keys():
 		condition_times = sorted(list_condition_time([condition]))
 		for i in range(len(condition_times) - 1):
@@ -104,14 +104,15 @@ rule all :
 		"D_results/reports/nbreads_report_plot_hist_donor:nbreads_after_downsampling.png",
 		"D_results/reports/nbreads_report_plot_hist_manip:nbreads_after_downsampling.png",
 		"D_results/reports/nbpeaks_report_plot_hist_manip:lost_percentage.png",
-		"D_results/reports/nbpeaks_report_plot_hist_donor:lost_percentage.png"
-		"D_results/reports/nbpeaks_report_plot_hist_manip:nbpeaks_before_threshold.png",
-		"D_results/reports/nbpeaks_report_plot_hist_manip:nbpeaks_after_threshold.png",
 		"D_results/reports/nbpeaks_report_plot_hist_donor:lost_percentage.png",
+		"D_results/reports/nbpeaks_report_plot_hist_manip:nbpeaks_before_threshold.png",
 		"D_results/reports/nbpeaks_report_plot_hist_donor:nbpeaks_before_threshold.png",
+		"D_results/reports/nbpeaks_report_plot_hist_manip:nbpeaks_after_threshold.png",
 		"D_results/reports/nbpeaks_report_plot_hist_donor:nbpeaks_after_threshold.png",
 		"D_results/reports/nbpeaks_report_plot_line_cond:nbpeaks_before_threshold.png",
 		"D_results/reports/nbpeaks_report_plot_line_cond:nbpeaks_after_threshold.png",
+		"D_results/reports/nbpeaks_report_plot_hist_donor:lost_percentage.png",
+		"D_results/reports/nbpeaks_report_plot_hist_manip:lost_percentage.png",
 		"D_results/reports/nbreads_per_peak_report_plot_read_graph:nbreads.pdf"
 		### Test bloc 3
 		# expand("D_results/readCount_matrix/static_peaks/featurecounts_{condition_time}.txt", condition_time = list_condition_time()),
@@ -209,7 +210,7 @@ rule bam_downsampling :
 #=============
 
 rule peak_calling :
-	input : rules.bam_downsampling.output
+	input : "D_results/downsampled_bam/{sample}_downsampled.bam"
 	output : "D_results/macs2_output/{sample}_peaks.broadPeak"
 	params :
 		prefix = "{sample}",
@@ -292,7 +293,6 @@ rule nbreads_prereport :
         done >> {output}
         """
 
-# Ok fonctionne bien et avec virgule comme séparateur
 # Report on nbreads before and after downsampling for all bam files
 rule nbreads_report :
 	input :
@@ -314,7 +314,6 @@ rule nbreads_report :
         """
 
 # ATTENTION bash ne gère pas les nombres à virgule, il faut utiliser bc -l
-# OK fonctionne bien et avec virgule comme séparateur
 rule nbpeaks_report :
 	input :
 	    before_threshold = expand("D_results/macs2_output/{sample}_peaks.broadPeak", sample = list_sample()),
@@ -335,11 +334,9 @@ rule nbpeaks_report :
 	    done >> {output}
 	"""
 
-# Ok fonctionne bien et avec virgule en séparateur
 rule nbreads_per_peak_report :
-	input : expand("D_results/genomic_ranges/static_peaks/{sample}.readcount.csv", sample = list_sample())
+	input : expand("D_results/macs2_output/{sample}.readcount.csv", sample = list_sample())
 	output : "D_results/reports/nbreads_per_peak_report.csv"
-	#conda : ...
 	shell : """ awk ' FNR==1 && NR!=1 {{next}}{{print}}' {input} > {output} """  # pour enlever le header qui restait avec cat {input} > {output}
 
 
