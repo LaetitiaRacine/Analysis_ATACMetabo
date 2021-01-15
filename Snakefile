@@ -89,8 +89,8 @@ rule all :
 		# Files
 		expand("D_results/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_sample()),
 		expand("D_results/genomic_ranges/static_peaks/{sample}_peaks.gr.rds", sample = list_sample()),
+		expand("D_results/macs2_output/{sample}.threshold.broadPeak", sample = list_sample()),
 		expand("D_results/genomic_ranges/static_peaks/{sample}.threshold.gr.rds", sample = list_sample()),
-		expand("D_results/macs2_output/{sample}.threshold.broadPeak", sample = list_sample())
 		# Reports
 		"D_results/reports/qc_report.csv",
 		"D_results/reports/nbreads_report.csv",
@@ -104,6 +104,7 @@ rule all :
 		"D_results/reports/nbreads_report_plot_hist_donor:nbreads_after_downsampling.png",
 		"D_results/reports/nbreads_report_plot_hist_manip:nbreads_after_downsampling.png",
 		"D_results/reports/nbpeaks_report_plot_hist_manip:lost_percentage.png",
+		"D_results/reports/nbpeaks_report_plot_hist_donor:lost_percentage.png"
 		"D_results/reports/nbpeaks_report_plot_hist_manip:nbpeaks_before_threshold.png",
 		"D_results/reports/nbpeaks_report_plot_hist_manip:nbpeaks_after_threshold.png",
 		"D_results/reports/nbpeaks_report_plot_hist_donor:lost_percentage.png",
@@ -245,7 +246,6 @@ rule create_grange :
 	output : "D_results/genomic_ranges/static_peaks/{name}.gr.rds"
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_scripts/GRanges.R from_csv -o {output} {input} """
-
 
 # =======
 # Reports and QC plots

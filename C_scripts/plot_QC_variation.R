@@ -41,19 +41,19 @@ df_report = read.csv2(arguments$reportcsv_file, sep = ",")
 if (arguments$hist_donor | arguments$hist_manip) {
 
   var_x = df_report$condition
-  var_y = unlist(df_report[arguments$colname]) #récupérer la bonne colonne
+  var_y = as.numeric(as.character(unlist(df_report[arguments$colname]))) #récupérer la bonne colonne
   var_ylegend = arguments$colname
   
   if (arguments$hist_donor) {
     var_facet = donor~.
     var_fill = df_report$time
-    var_legendtitle = "Time"
-    var_title = "Variabilité interdonneur"
+    var_legendtitle = "Time spent in culture after stimulation"
+    var_title = "Inter-donor variability"
   } else if (arguments$hist_manip) {
     var_facet = time~.
     var_fill = df_report$donor
     var_legendtitle = "Donor"
-    var_title = "Variabilité intermanip "
+    var_title = "Inter-assay variability "
   }
   
   hist_report = ggplot(df_report, aes(x = var_x, y = var_y, fill = var_fill)) +
@@ -66,7 +66,7 @@ if (arguments$hist_donor | arguments$hist_manip) {
           axis.ticks.y = element_line() ,
           axis.title.y = element_text(vjust = 1 ,size = 14),
           axis.title.x = element_blank(),
-          axis.text.x = element_text(vjust = 5, size = 11, colour = "black"),
+          axis.text.x = element_text(vjust = -0.5, size = 11, colour = "black"),
           axis.ticks = element_blank()) +
     facet_wrap(var_facet, scales = "free_x") +
     ggtitle(var_title) +
@@ -97,12 +97,12 @@ if (arguments$line_cond) {
   df_filtered = df_filtered %>% dplyr::filter(donor %in% donor_filtered_list )
   
   var_x = df_filtered$time
-  var_y = unlist(df_filtered[arguments$colname])
+  var_y = as.numeric(as.character(unlist(df_filtered[arguments$colname])))
   var_facet = condition~.
   var_fill = df_filtered$donor
   var_legendtitle = "Donor"
   var_ylegend = arguments$colname
-  var_title = "Evolution au cours du temps"
+  var_title = "Overtime progression"
   
   line_report = ggplot(df_filtered, aes(x = var_x, y = var_y, group = var_fill)) +
     geom_line(aes(color = var_fill), size = 1)+
@@ -116,7 +116,7 @@ if (arguments$line_cond) {
           axis.ticks.y = element_line() ,
           axis.title.y = element_text(vjust = 1 ,size = 14),
           axis.title.x = element_blank(),
-          axis.text.x = element_text(vjust = 5, size = 11, colour = "black"),
+          axis.text.x = element_text(vjust = -0.5, size = 11, colour = "black"),
           axis.ticks = element_blank()) +
     facet_wrap(var_facet, scales = "free_x") +
     ggtitle(var_title) +
@@ -160,7 +160,6 @@ for(i in 1:4) {
                 axis.ticks = element_blank()) +
           xlim(c(0,200)) +
           facet_wrap_paginate(condition_time_donor~., scales = "free_x", ncol = 4, nrow = 4, page = i) +
-          #ggtitle(var_title) +
           labs(y = var_ylegend) 
         )
     }
