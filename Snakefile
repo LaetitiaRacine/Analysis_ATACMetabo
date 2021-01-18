@@ -267,7 +267,7 @@ rule qc_report :
           cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
           time=$(echo "${{sample[i]}}" | cut -d_ -f2)
           donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
-          qc_info=$(cat "${{qc_files[i]}}" | awk -F$'\t' '{{ print $1";"$2 }}' | paste -sd ';' -)
+          qc_info=$(cat "${{qc_files[i]}}" | awk -F$'\t' '{{ print $1";"$2 }}' | paste -sd ';' - | tr -d '%')
           echo -e "${{cond}};${{time}};${{donor}};${{qc_info}}"
         done >> {output}
         """
