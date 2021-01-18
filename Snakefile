@@ -271,8 +271,8 @@ rule qc_report :
           cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
           time=$(echo "${{sample[i]}}" | cut -d_ -f2)
           donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
-          qc_info=$(cat "${{qc_files[i]}}" | awk -F$'\t' '{{ print $1","$2 }}' | paste -sd ',' -)
-          echo -e "${{cond}},${{time}},${{donor}},${{qc_info}}"
+          qc_info=$(cat "${{qc_files[i]}}" | awk -F$'\t' '{{ print $1";"$2 }}' | paste -sd ';' -)
+          echo -e "${{cond}};${{time}};${{donor}};${{qc_info}}"
         done >> {output}
         """
 
@@ -289,7 +289,7 @@ rule nbreads_prereport :
           cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
           time=$(echo "${{sample[i]}}" | cut -d_ -f2)
           donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
-          echo "$cond,$time,$donor,${{nbreads[i]}}"
+          echo "$cond;$time;$donor;${{nbreads[i]}}"
         done >> {output}
         """
 
@@ -309,7 +309,7 @@ rule nbreads_report :
           cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
           time=$(echo "${{sample[i]}}" | cut -d_ -f2)
           donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
-          echo "$cond,$time,$donor,${{nbreads_before[i]}},${{nbreads_after[i]}}"
+          echo "$cond;$time;$donor;${{nbreads_before[i]}};${{nbreads_after[i]}}"
         done >> {output}
         """
 
@@ -330,7 +330,7 @@ rule nbpeaks_report :
           time=$(echo "${{sample[i]}}" | cut -d_ -f2)
           donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
 		  pct=$(echo "scale=4; (${{nbpeaks_before[i]}}-${{nbpeaks_after[i]}})/${{nbpeaks_before[i]}}*100" | bc -l)
-		  echo "$cond,$time,$donor,${{nbpeaks_before[i]}},${{nbpeaks_after[i]}},$pct"
+		  echo "$cond;$time;$donor;${{nbpeaks_before[i]}};${{nbpeaks_after[i]}};$pct"
 	    done >> {output}
 	"""
 
