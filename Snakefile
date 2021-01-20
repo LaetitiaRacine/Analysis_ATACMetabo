@@ -115,7 +115,15 @@ rule all :
 		"D_results/reports/nbpeaks_report_plot_line_cond:nbpeaks_after_threshold.png",
 		"D_results/reports/nbpeaks_report_plot_hist_donor:lost_percentage.png",
 		"D_results/reports/nbpeaks_report_plot_hist_manip:lost_percentage.png",
-		"D_results/reports/nbreads_per_peak_report_plot_read_graph:nbreads.pdf"
+		"D_results/reports/nbreads_per_peak_report_plot_read_graph:nbreads.pdf",
+		"D_results/reports/nbpeaks_per_chromosome_report_plot_chrom_single:Peak_count.pdf",
+		"D_results/reports/nbpeaks_per_chromosome_report_plot_chrom_multi:Peak_count.pdf",
+		"D_results/reports/nbpeaks_per_chromosome_report_plot_chrom_single:Peak_percentage.pdf",
+		"D_results/reports/nbpeaks_per_chromosome_report_plot_chrom_multi:Peak_percentage.pdf",
+		"D_results/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_single:Peak_count.pdf",
+		"D_results/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_multi:Peak_count.pdf",
+		"D_results/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_single:Peak_percentage.pdf",
+		"D_results/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_multi:Peak_percentage.pdf"
 		### Test bloc 3
 		# expand("D_results/readCount_matrix/static_peaks/featurecounts_{condition_time}.txt", condition_time = list_condition_time()),
 		# expand("D_results/readCount_matrix/differential_peaks/featurecounts_{union}.txt", union = list_unions())
@@ -335,11 +343,22 @@ rule nbreads_per_peak_report :
 	output : "D_results/reports/nbreads_per_peak_report.csv"
 	shell : """ awk ' FNR==1 && NR!=1 {{next}}{{print}}' {input} > {output} """  # pour enlever le header qui restait avec cat {input} > {output}
 
+rule peak_per_chromosome_report :
+	input :
+		before_threshold = expand("D_results/macs2_output/{sample}_peaks.df.csv", sample = list_sample()),
+		after_threshold = expand("D_results/macs2_output/{sample}.threshold.df.csv", sample = list_sample())
+	output :
+		before_threshold = "D_results/reports/nbpeaks_per_chromosome_report.csv",
+		after_threshold = "D_results/reports/nbpeaks_per_chromosome_threshold_report.csv"
+	shell : """
+			awk ' FNR==1 && NR!=1 {{next}}{{print}}' {input.before_threshold} > {output.before_threshold}
+			awk ' FNR==1 && NR!=1 {{next}}{{print}}' {input.after_threshold} > {output.after_threshold}
+			"""
 
 # Draw QC plots from nbreads_report.csv and nb_peaks_report.csv
 rule plot_reports :
 	wildcard_constraints:
-		format="hist_donor|hist_manip|line_cond|read_graph",
+		format="hist_donor|hist_manip|line_cond|read_graph|chrom_single|chrom_multi",
 		colname="[a-zA-Z_]+",
 		reportname="[a-z_]+",
 		extension="png|pdf"
