@@ -219,6 +219,9 @@ if (arguments$chrom_single | arguments$chrom_multi) {
     rm(temp, table, sample, condition, time, donor)
   }
 
+  # Only chromosome X
+  # df_recap = df_recap %>% dplyr::filter(Chr == "chrMT")
+  
   # Remplissage de la variable var_y selon le graphique voulu (count/percentage)
   var_y = as.numeric(as.character(unlist(df_recap[arguments$colname])))
   var_ylegend = arguments$colname
@@ -232,7 +235,7 @@ if (arguments$chrom_single | arguments$chrom_multi) {
           
     # plot  sur 25 pages (car 25 chromosomes)
     pdf(width = 16*0.75, height = 9*0.75, file = arguments$pdf_file)
-    for(i in 1:25) {
+    for(i in 1:25) {   # changer le 25 en 1 quand seulement chromosomeX
         print(ggplot(df_recap, aes(x = var_x, y = var_y, fill = var_fill)) +
                 geom_col(width = 0.7, position = position_dodge2(width = 0.8, preserve = "single")) +
                 theme(legend.position = "none",
@@ -250,7 +253,7 @@ if (arguments$chrom_single | arguments$chrom_multi) {
                   scale_fill_viridis(option="plasma", discrete = TRUE))
           }
         dev.off()
-          
+    
   } else if (arguments$chrom_multi) { # 1 graphique par cond_time avec tous les chromosomes
     
     var_x = df_recap$Chr
@@ -298,5 +301,10 @@ if (arguments$chrom_single | arguments$chrom_multi) {
           }
           dev.off()
           
-    }
+  }
+  
 }
+
+
+
+
