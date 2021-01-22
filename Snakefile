@@ -87,43 +87,49 @@ rule all :
 	input :
 		### Test bloc 2 ###
 		# Files
-		expand("D_results/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_sample()),
-		expand("D_results/genomic_ranges/static_peaks/{sample}_peaks.gr.rds", sample = list_sample()),
-		expand("D_results/macs2_output/{sample}.threshold.broadPeak", sample = list_sample()),
-		expand("D_results/genomic_ranges/static_peaks/{sample}.threshold.gr.rds", sample = list_sample()),
+		# expand("D_results/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_sample()),
+		# expand("D_results/genomic_ranges/static_peaks/{sample}_peaks.gr.rds", sample = list_sample()),
+		# expand("D_results/macs2_output/{sample}.threshold.broadPeak", sample = list_sample()),
+		# expand("D_results/genomic_ranges/static_peaks/{sample}.threshold.gr.rds", sample = list_sample()),
 		# Reports
-		"D_results/reports/qc_report.csv",
+		# "D_results/reports/qc_report.csv",
 		"D_results/reports/nbreads_report.csv",
 		"D_results/reports/nbpeaks_report.csv",
-		"D_results/reports/nbreads_per_peak_report.csv",
+		# "D_results/reports/nbreads_per_peak_report.csv",
 		# Graph
-		"D_results/reports/qc_report_plot_hist_donor-QCP_nb_mapped.png",
-		"D_results/reports/qc_report_plot_hist_manip-QCP_nb_mapped.png",
-		"D_results/reports/qc_report_plot_hist_donor-QCP_pct_mapped.png",
-		"D_results/reports/qc_report_plot_hist_manip-QCP_pct_mapped.png",
-		"D_results/reports/nbreads_report_plot_hist_donor-nbreads_before_downsampling.png",
+		# "D_results/reports/qc_report_plot_hist_donor-QCP_nb_mapped.png",
+		# "D_results/reports/qc_report_plot_hist_manip-QCP_nb_mapped.png",
+		# "D_results/reports/qc_report_plot_hist_donor-QCP_pct_mapped.png",
+		# "D_results/reports/qc_report_plot_hist_manip-QCP_pct_mapped.png",
+		# "D_results/reports/qc_report_plot_hist_manip-QCP_pct_mapped.png",
+		# "D_results/reports/qc_report_plot_hist_manip-QCP_paired_in_sequencing.png",
+		# "D_results/reports/qc_report_plot_hist_manip-QCP_pct_properly_paired.png",
+		# "D_results/reports/qc_report_plot_hist_manip-QCP_with_itself_and_mate_mapped.png",
+		# "D_results/reports/qc_report_plot_hist_manip-QCP_pct_singletons.png",
+		# "D_results/reports/qc_report_plot_hist_manip-QCP_with_mate_mapped_to_a_different_chr.png",
+		# "D_results/reports/nbreads_report_plot_hist_donor-nbreads_before_downsampling.png",
 		"D_results/reports/nbreads_report_plot_hist_manip-nbreads_before_downsampling.png",
-		"D_results/reports/nbreads_report_plot_hist_donor-nbreads_after_downsampling.png",
+		# "D_results/reports/nbreads_report_plot_hist_donor-nbreads_after_downsampling.png",
 		"D_results/reports/nbreads_report_plot_hist_manip-nbreads_after_downsampling.png",
 		"D_results/reports/nbpeaks_report_plot_hist_manip-lost_percentage.png",
-		"D_results/reports/nbpeaks_report_plot_hist_donor-lost_percentage.png",
+		# "D_results/reports/nbpeaks_report_plot_hist_donor-lost_percentage.png",
 		"D_results/reports/nbpeaks_report_plot_hist_manip-nbpeaks_before_threshold.png",
-		"D_results/reports/nbpeaks_report_plot_hist_donor-nbpeaks_before_threshold.png",
+		# "D_results/reports/nbpeaks_report_plot_hist_donor-nbpeaks_before_threshold.png",
 		"D_results/reports/nbpeaks_report_plot_hist_manip-nbpeaks_after_threshold.png",
-		"D_results/reports/nbpeaks_report_plot_hist_donor-nbpeaks_after_threshold.png",
+		# "D_results/reports/nbpeaks_report_plot_hist_donor-nbpeaks_after_threshold.png",
 		"D_results/reports/nbpeaks_report_plot_line_cond-nbpeaks_before_threshold.png",
-		"D_results/reports/nbpeaks_report_plot_line_cond-nbpeaks_after_threshold.png",
-		"D_results/reports/nbpeaks_report_plot_hist_donor-lost_percentage.png",
-		"D_results/reports/nbpeaks_report_plot_hist_manip-lost_percentage.png",
-		"D_results/reports/nbreads_per_peak_report_plot_read_graph-nbreads.pdf",
-		"D_results/reports/nbpeaks_per_chromosome_report_plot_chrom_single-Peak_count.pdf",
-		"D_results/reports/nbpeaks_per_chromosome_report_plot_chrom_multi-Peak_count.pdf",
-		"D_results/reports/nbpeaks_per_chromosome_report_plot_chrom_single-Peak_percentage.pdf",
-		"D_results/reports/nbpeaks_per_chromosome_report_plot_chrom_multi-Peak_percentage.pdf",
-		"D_results/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_single-Peak_count.pdf",
-		"D_results/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_multi-Peak_count.pdf",
-		"D_results/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_single-Peak_percentage.pdf",
-		"D_results/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_multi-Peak_percentage.pdf"
+		"D_results/reports/nbpeaks_report_plot_line_cond-nbpeaks_after_threshold.png"
+		# "D_results/reports/nbpeaks_report_plot_hist_donor-lost_percentage.png",
+		# "D_results/reports/nbpeaks_report_plot_hist_manip-lost_percentage.png",
+		# "D_results/reports/nbreads_per_peak_report_plot_read_graph-nbreads.pdf",
+		# "D_results/reports/nbpeaks_per_chromosome_report_plot_chrom_single-Peak_count.pdf",
+		# "D_results/reports/nbpeaks_per_chromosome_report_plot_chrom_multi-Peak_count.pdf",
+		# "D_results/reports/nbpeaks_per_chromosome_report_plot_chrom_single-Peak_percentage.pdf",
+		# "D_results/reports/nbpeaks_per_chromosome_report_plot_chrom_multi-Peak_percentage.pdf",
+		# "D_results/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_single-Peak_count.pdf",
+		# "D_results/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_multi-Peak_count.pdf",
+		# "D_results/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_single-Peak_percentage.pdf",
+		# "D_results/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_multi-Peak_percentage.pdf"
 		### Test bloc 3
 		# expand("D_results/readCount_matrix/static_peaks/featurecounts_{condition_time}.txt", condition_time = list_condition_time()),
 		# expand("D_results/readCount_matrix/differential_peaks/featurecounts_{union}.txt", union = list_unions())
@@ -226,7 +232,9 @@ rule peak_calling :
 		prefix = "{sample}",
 		macs2_output_dir = "D_results/macs2_output"
 	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
-	shell : """ macs2 callpeak -t {input} -n {params.prefix} --outdir {params.macs2_output_dir} -f BAMPE -g hs -B --broad --broad-cutoff 0.1 """
+	shell : """ macs2 callpeak -t {input} -n {params.prefix} --outdir {params.macs2_output_dir} -f BAM -g hs -B -q 0.05 --nomodel --shift -100 --extsize 200 """
+	#macs2 callpeak -t {input} -n {params.prefix} --outdir {params.macs2_output_dir} -f BAMPE -g hs -B --broad --broad-cutoff 0.1
+	#
 
 rule broadPeak_to_csv :
 	wildcard_constraints :
@@ -343,7 +351,7 @@ rule nbreads_per_peak_report :
 	output : "D_results/reports/nbreads_per_peak_report.csv"
 	shell : """ awk ' FNR==1 && NR!=1 {{next}}{{print}}' {input} > {output} """  # pour enlever le header qui restait avec cat {input} > {output}
 
-rule peak_per_chromosome_report :
+rule chrom_report :
 	input :
 		before_threshold = expand("D_results/macs2_output/{sample}_peaks.df.csv", sample = list_sample()),
 		after_threshold = expand("D_results/macs2_output/{sample}.threshold.df.csv", sample = list_sample())
