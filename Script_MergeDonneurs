@@ -1,0 +1,201 @@
+# Merge "à la main" des donneurs
+# commande : samtools merge nomdesortie fichier1 fichier2 fichier3
+
+###########################################################################################################################################################################################"""
+DIR_INPUT = "~/Documents/Analysis_ATACMetabo/A_raw_data/bam_files/"
+DIR_OUTPUT = "~/Documents/Analysis_ATACMetabo/A_raw_data/bam_files_merged/"
+
+rule all :
+    input :
+        "A_raw_data/bam_files_merged/Xvivo_00h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/MP_03h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/MP_06h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/MP_12h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/MP_24h_D1-D2-D3-D5-D6.bam",
+        "A_raw_data/bam_files_merged/DON_03h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/DON_06h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/DON_12h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/DON_24h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/2DG_03h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/2DG_06h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/2DG_12h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/2DG_24h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/AOA_03h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/AOA_06h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/AOA_12h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/AOA_24h_D1-D2-D3.bam",
+        "A_raw_data/bam_files_merged/aK_24h_D4-D5-D6.bam",
+        "A_raw_data/bam_files_merged/VPA_24h_D4-D5-D6.bam"
+
+rule Xvivo_00h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001JLL_R1_HKJY5BGXC.IND229.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LAS_R1_HKK2VBGXC.IND229.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LBL_R2_XXXXXXXXX.IND229.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/Xvivo_00h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule MP_03h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001JLN_R1_HKJY5BGXC.IND230.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LAU_R1_HKK2VBGXC.IND230.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LCV_R1_HKJLYBGXC.IND250.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/MP_03h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule MP_06h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001JLO_R1_HKJY5BGXC.IND231.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+          donor2 = "A_raw_data/bam_files/H619_FI_C001LAV_R1_HKK2VBGXC.IND231.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+          donor3 = "A_raw_data/bam_files/H619_FI_C001LBO_R1_HKMHFBGXC.IND231.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/MP_06h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule MP_12h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001JLQ_R1_HKJY5BGXC.IND232.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LAX_R1_HKK2VBGXC.IND232.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LBP_R1_HKMHFBGXC.IND232.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/MP_12h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule MP_24h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001JLT_R1_HKJY5BGXC.IND233.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LAZ_R1_HKK2VBGXC.IND233.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LBQ_R1_HKMHFBGXC.IND233.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor4 = "A_raw_data/bam_files/H619_FI_C001LI2_R1_H2GNHBGXF.IND230.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor5 = "A_raw_data/bam_files/H619_FI_C001LI4_R1_H2GNHBGXF.IND231.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/MP_24h_D1-D2-D3-D5-D6.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} {input.donor4} {input.donor5}"""
+
+rule DON_03h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001LCL_R1_HKJLYBGXC.IND242.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LCR_R1_HKJLYBGXC.IND243.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LCX_R1_HKJLYBGXC.IND251.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/DON_03h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule DON_06h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001LDI_R1_HKK23BGXC.IND233.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LDN_R1_HKK23BGXC.IND234.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LDR_R1_HKK23BGXC.IND246.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/DON_06h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule DON_12h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001LEC_R1_HKKGYBGXC.IND239.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LEI_R1_HKKGYBGXC.IND240.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LEL_R1_HKKGYBGXC.IND249.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/DON_12h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule DON_24h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001LAB_R1_HKJY5BGXC.IND236.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LB5_R1_HKK2VBGXC.IND236.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LBX_R1_HKMHFBGXC.IND236.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/DON_24h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule DDG_03h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001LCG_R1_HKJLYBGXC.IND239.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LCM_R1_HKJLYBGXC.IND240.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LCT_R1_HKJLYBGXC.IND249.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/2DG_03h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule DDG_06h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001LDD_R1_HKK23BGXC.IND229.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LDK_R1_HKK23BGXC.IND230.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LDP_R1_HKK23BGXC.IND244.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/2DG_06h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule DDG_12h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001LE8_R1_HKKGYBGXC.IND235.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LED_R1_HKKGYBGXC.IND236.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LEJ_R1_HKKGYBGXC.IND247.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/2DG_12h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule DDG_24h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001JLU_R1_HKJY5BGXC.IND234.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LB0_R1_HKK2VBGXC.IND234.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LBS_R1_HKMHFBGXC.IND234.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/2DG_24h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule AOA_03h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001LCI_R1_HKJLYBGXC.IND241.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LCP_R1_HKJLYBGXC.IND135.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LBN_1_1_CW37G.IND229.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/AOA_03h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule AOA_06h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001LDF_R1_HKK23BGXC.IND231.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LDL_R1_HKK23BGXC.IND232.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LDQ_R1_HKK23BGXC.IND245.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/AOA_06h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule AOA_12h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001LE9_R1_HKKGYBGXC.IND237.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LEF_R1_HKKGYBGXC.IND238.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LEK_R1_HKKGYBGXC.IND248.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/AOA_12h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule AOA_24h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001JLW_R1_HKJY5BGXC.IND235.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LB2_R1_HKK2VBGXC.IND235.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LBU_R1_HKMHFBGXC.IND235.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/AOA_24h_D1-D2-D3.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule aK_24h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001LHP_R1_H2GNHBGXF.IND235.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LHR_R1_H2GNHBGXF.IND236.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LHT_R1_H2GNHBGXF.IND237.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/aK_24h_D4-D5-D6.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
+
+rule VPA_24h :
+    input :
+        donor1 = "A_raw_data/bam_files/H619_FI_C001LHV_R1_H2GNHBGXF.IND232.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor2 = "A_raw_data/bam_files/H619_FI_C001LHX_R1_H2GNHBGXF.IND233.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam",
+        donor3 = "A_raw_data/bam_files/H619_FI_C001LHY_R1_H2GNHBGXF.IND234.fastq.trimmomatic_pe.uniquely_mapped.samToBam.addReadGroup.reorder.sort.clean.fixMate.markDuplicatesRemove.bam"
+    output : "A_raw_data/bam_files_merged/VPA_24h_D4-D5-D6.bam"
+    conda : "B_environments/ATACMetabo_main_env.yaml"
+    shell : """ samtools merge {output} {input.donor1} {input.donor2} {input.donor3} """
