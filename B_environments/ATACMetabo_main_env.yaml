@@ -7,6 +7,7 @@ dependencies:
   - bioconductor-deseq2
   - bioconductor-genomicranges
   - bioconductor-rsubread
+  - bioconductor-rsamtools
   - r-base
   - r-docopt
   - r-dplyr

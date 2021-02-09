@@ -1,37 +1,63 @@
 
-# commande pour lancer le script (se placer dans le dossier):
-# snakemake --use-conda --reason --cores 8
+# Commande pour lancer le script (se placer dans le dossier):
+# snakemake -s Snakefile_MergeDonneurs --use-conda --reason --cores 12
 
-from snakemake.io import expand, glob_wildcards
+from snakemake.io import expand
 from collections import defaultdict
 from functools import partial
 
 SAMPLE = ['2DG_03h_D1-D2-D3','2DG_06h_D1-D2-D3','2DG_12h_D1-D2-D3','2DG_24h_D1-D2-D3','AOA_03h_D1-D2-D3','AOA_06h_D1-D2-D3','AOA_12h_D1-D2-D3','AOA_24h_D1-D2-D3','DON_03h_D1-D2-D3','DON_06h_D1-D2-D3','DON_12h_D1-D2-D3','DON_24h_D1-D2-D3','MP_03h_D1-D2-D3','MP_06h_D1-D2-D3','MP_12h_D1-D2-D3','MP_24h_D1-D2-D3-D5-D6','VPA_24h_D4-D5-D6', 'aK_24h_D4-D5-D6']
 
+# LINK_TAB = {}
+# SAMPLE = defaultdict(partial(defaultdict, dict))
+#
+# import csv
+# with open('link_tab.csv', mode='r') as file:
+# 	reader = csv.reader(file)
+# 	next(reader, None)  # skip the headers
+# 	for row in reader:
+# 		use, condition, time, donor, manip, raw_file = row
+# 		if use == "false":
+# 			continue
+# 		SAMPLE[condition][time][donor] = raw_file
+#
+# def list_sample():
+# 	result = []
+# 	for condition, times in SAMPLE.items():
+# 		for time, donors in times.items():
+# 			for donor, file in donors.items():
+# 				result.append("_".join((condition, time, donor)))
+# 	return result
+#
+# wildcard_constraints:
+# 	donor="D\d+",
+# 	donors="D\d+(,D\d+)+",
+# 	sample="\w+_\d{2}h_D\d+"
+
 rule all :
 	input :
 		### Test bloc 2 ###
 		# Files
-		expand("D_results_merged/downsampled_bam/{sample}_downsampled.bam.bai", sample = SAMPLE),
-		expand("D_results_merged/genomic_ranges/static_peaks/{sample}_peaks.gr.rds", sample = SAMPLE),
-		expand("D_results_merged/macs2_output/{sample}.threshold.broadPeak", sample = SAMPLE),
-		expand("D_results_merged/genomic_ranges/static_peaks/{sample}.threshold.gr.rds", sample = SAMPLE),
+		# expand("D_results_merged/downsampled_bam/{sample}_downsampled.bam.bai", sample = SAMPLE),
+		# expand("D_results_merged/genomic_ranges/static_peaks/{sample}_peaks.gr.rds", sample = SAMPLE),
+		# expand("D_results_merged/macs2_output/{sample}.threshold.broadPeak", sample = SAMPLE),
+		# expand("D_results_merged/genomic_ranges/static_peaks/{sample}.threshold.gr.rds", sample = SAMPLE),
 		# # Reports
 		"D_results_merged/reports/qc_report.csv",
-		"D_results_merged/reports/nbreads_report.csv",
-		"D_results_merged/reports/nbpeaks_report.csv",
-		"D_results_merged/reports/nbreads_per_peak_report.csv",
+		# "D_results_merged/reports/nbreads_report.csv",
+		# "D_results_merged/reports/nbpeaks_report.csv",
+		# "D_results_merged/reports/nbreads_per_peak_report.csv",
 		# Graph
-		"D_results_merged/reports/qc_report_plot_hist_manip-QCP_nb_mapped.png",
-		"D_results_merged/reports/qc_report_plot_hist_manip-QCP_pct_mapped.png",
-		"D_results_merged/reports/nbreads_report_plot_hist_manip-nbreads_before_downsampling.png",
-		"D_results_merged/reports/nbreads_report_plot_hist_manip-nbreads_after_downsampling.png",
-		"D_results_merged/reports/nbpeaks_report_plot_hist_manip-lost_percentage.png",
-		"D_results_merged/reports/nbpeaks_report_plot_hist_manip-nbpeaks_before_threshold.png",
-		"D_results_merged/reports/nbpeaks_report_plot_hist_manip-nbpeaks_after_threshold.png",
-		"D_results_merged/reports/nbpeaks_report_plot_line_cond-nbpeaks_before_threshold.png",
-		"D_results_merged/reports/nbpeaks_report_plot_line_cond-nbpeaks_after_threshold.png",
-		"D_results_merged/reports/nbpeaks_report_plot_hist_manip-lost_percentage.png",
+		# "D_results_merged/reports/qc_report_plot_hist_manip-QCP_nb_mapped.png",
+		# "D_results_merged/reports/qc_report_plot_hist_manip-QCP_pct_mapped.png",
+		# "D_results_merged/reports/nbreads_report_plot_hist_manip-nbreads_before_downsampling.png",
+		# "D_results_merged/reports/nbreads_report_plot_hist_manip-nbreads_after_downsampling.png",
+		# "D_results_merged/reports/nbpeaks_report_plot_hist_manip-lost_percentage.png",
+		# "D_results_merged/reports/nbpeaks_report_plot_hist_manip-nbpeaks_before_threshold.png",
+		# "D_results_merged/reports/nbpeaks_report_plot_hist_manip-nbpeaks_after_threshold.png",
+		# "D_results_merged/reports/nbpeaks_report_plot_line_cond-nbpeaks_before_threshold.png",
+		# "D_results_merged/reports/nbpeaks_report_plot_line_cond-nbpeaks_after_threshold.png",
+		# "D_results_merged/reports/nbpeaks_report_plot_hist_manip-lost_percentage.png",
 		# "D_results_merged/reports/nbreads_per_peak_report_plot_read_graph-nbreads.pdf",
 		# "D_results_merged/reports/nbpeaks_per_chromosome_report_plot_chrom_single-Peak_count.pdf",
 		# "D_results_merged/reports/nbpeaks_per_chromosome_report_plot_chrom_multi-Peak_count.pdf",
@@ -47,10 +73,15 @@ rule all :
 #*** Bloc 2 : Individual study and QC of each sample
 #*******************************************************************************************************************************************************
 
-# rule link_rename_raw :
-# 	input : expand("A_raw_data/bam_files_merged/{sample}.bam", sample = SAMPLE)
-# 	output : "D_results_merged/bam/link_{sample}.bam"
-# 	shell : """ ln -s "$(pwd)/{input}" {output} """
+# Fonctionne mais très très lent car pas de parallélisation + problème quand on appelle tout le snakefile mais fonctionne quand on appelle juste la règle
+rule merge_donors :
+	input :
+		csv = "link_tab.csv",
+		dir_bam = "A_raw_data/bam_files"
+	output : "D_results_merged/bam_files_merged/{condition}_{time}_{list_donors}.bam"
+	params : output_dir = "D_results_merged/bam_files_merged/"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_scripts/mergeBamFiles.R --output_dir {params.output_dir} {input.csv} {input.dir_bam} """
 
 # ====================
 # Generic BAM analysis
