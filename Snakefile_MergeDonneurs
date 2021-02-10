@@ -1,26 +1,53 @@
 
-# commande pour lancer le script (se placer dans le dossier):
-# snakemake --use-conda --reason --cores 8
+# Commande pour lancer le script (se placer dans le dossier):
+# snakemake -s Snakefile_MergeDonneurs --use-conda --reason --cores 12
 
-from snakemake.io import expand, glob_wildcards
+from snakemake.io import expand
 from collections import defaultdict
 from functools import partial
 
-SAMPLE = ['2DG_03h_D1-D2-D3','2DG_06h_D1-D2-D3','2DG_12h_D1-D2-D3','2DG_24h_D1-D2-D3','AOA_03h_D1-D2-D3','AOA_06h_D1-D2-D3','AOA_12h_D1-D2-D3','AOA_24h_D1-D2-D3','DON_03h_D1-D2-D3','DON_06h_D1-D2-D3','DON_12h_D1-D2-D3','DON_24h_D1-D2-D3','MP_03h_D1-D2-D3','MP_06h_D1-D2-D3','MP_12h_D1-D2-D3','MP_24h_D1-D2-D3-D5-D6','VPA_24h_D4-D5-D6', 'aK_24h_D4-D5-D6']
+LINK_TAB = {}
+SAMPLE = defaultdict(partial(defaultdict, dict)) # Création d'un dictionnaire vide contenant des dictionnaires
+
+# Récupération de la liste des condition_time_sample à étudier dans le fichier link_tab.csv : CODE EN PYTHON
+import csv
+with open('link_tab.csv', mode='r') as file:
+	reader = csv.reader(file)
+	next(reader, None)  # skip the headers
+	for row in reader: #pour chaque ligne du reader
+		use, condition, time, donor, manip, raw_file = row #les valeurs contenuent dans la row sont réparties dans des variable
+		if use == "false":
+			continue
+		SAMPLE[condition][time][donor] = raw_file # remplissage du dictionnaire SAMPLE
+
+def list_merged_sample() :
+	result = []
+	for condition, times in SAMPLE.items(): # for clé valeur dans dictionnaire SAMPLE (passe en revue toutes les variables dans le dictionnaire condition)
+		for time, donors in times.items():
+			result.append("_".join((condition, time, "-".join(donors.keys()))))
+	return result
+
+print(list_merged_sample())
+
+wildcard_constraints:
+	donor="D\d+",
+	donors="D\d+(-D\d+)+",
+	sample="\w+_\d{2}h_D\d+(-D\d+)+"
 
 rule all :
 	input :
 		### Test bloc 2 ###
 		# Files
-		expand("D_results_merged/downsampled_bam/{sample}_downsampled.bam.bai", sample = SAMPLE),
-		expand("D_results_merged/genomic_ranges/static_peaks/{sample}_peaks.gr.rds", sample = SAMPLE),
-		expand("D_results_merged/macs2_output/{sample}.threshold.broadPeak", sample = SAMPLE),
-		expand("D_results_merged/genomic_ranges/static_peaks/{sample}.threshold.gr.rds", sample = SAMPLE),
+		expand("D_results_merged/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_merged_sample()),
+		expand("D_results_merged/genomic_ranges/static_peaks/{sample}_peaks.gr.rds", sample = list_merged_sample()),
+		expand("D_results_merged/macs2_output/{sample}.threshold.broadPeak", sample = list_merged_sample()),
+		expand("D_results_merged/genomic_ranges/static_peaks/{sample}.threshold.gr.rds", sample = list_merged_sample()),
 		# # Reports
 		"D_results_merged/reports/qc_report.csv",
 		"D_results_merged/reports/nbreads_report.csv",
 		"D_results_merged/reports/nbpeaks_report.csv",
 		"D_results_merged/reports/nbreads_per_peak_report.csv",
+		"D_results_merged/reports/nbpeaks_per_chromosome_report.csv",
 		# Graph
 		"D_results_merged/reports/qc_report_plot_hist_manip-QCP_nb_mapped.png",
 		"D_results_merged/reports/qc_report_plot_hist_manip-QCP_pct_mapped.png",
@@ -31,26 +58,31 @@ rule all :
 		"D_results_merged/reports/nbpeaks_report_plot_hist_manip-nbpeaks_after_threshold.png",
 		"D_results_merged/reports/nbpeaks_report_plot_line_cond-nbpeaks_before_threshold.png",
 		"D_results_merged/reports/nbpeaks_report_plot_line_cond-nbpeaks_after_threshold.png",
-		"D_results_merged/reports/nbpeaks_report_plot_hist_manip-lost_percentage.png",
-		# "D_results_merged/reports/nbreads_per_peak_report_plot_read_graph-nbreads.pdf",
-		# "D_results_merged/reports/nbpeaks_per_chromosome_report_plot_chrom_single-Peak_count.pdf",
-		# "D_results_merged/reports/nbpeaks_per_chromosome_report_plot_chrom_multi-Peak_count.pdf",
-		# "D_results_merged/reports/nbpeaks_per_chromosome_report_plot_chrom_single-Peak_percentage.pdf",
-		# "D_results_merged/reports/nbpeaks_per_chromosome_report_plot_chrom_multi-Peak_percentage.pdf",
-		# "D_results_merged/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_single-Peak_count.pdf",
-		# "D_results_merged/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_multi-Peak_count.pdf",
-		# "D_results_merged/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_single-Peak_percentage.pdf",
-		# "D_results_merged/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_multi-Peak_percentage.pdf"
+		#"D_results_merged/reports/nbreads_per_peak_report_plot_read_graph-nbreads.pdf",
+		"D_results_merged/reports/nbpeaks_per_chromosome_report_plot_chrom_single-Peak_count.pdf",
+		"D_results_merged/reports/nbpeaks_per_chromosome_report_plot_chrom_multi-Peak_count.pdf",
+		"D_results_merged/reports/nbpeaks_per_chromosome_report_plot_chrom_single-Peak_percentage.pdf",
+		"D_results_merged/reports/nbpeaks_per_chromosome_report_plot_chrom_multi-Peak_percentage.pdf",
+		"D_results_merged/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_single-Peak_count.pdf",
+		"D_results_merged/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_multi-Peak_count.pdf",
+		"D_results_merged/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_single-Peak_percentage.pdf",
+		"D_results_merged/reports/nbpeaks_per_chromosome_threshold_report_plot_chrom_multi-Peak_percentage.pdf"
 
 
 #*******************************************************************************************************************************************************
 #*** Bloc 2 : Individual study and QC of each sample
 #*******************************************************************************************************************************************************
 
-# rule link_rename_raw :
-# 	input : expand("A_raw_data/bam_files_merged/{sample}.bam", sample = SAMPLE)
-# 	output : "D_results_merged/bam/link_{sample}.bam"
-# 	shell : """ ln -s "$(pwd)/{input}" {output} """
+rule link_rename_raw :
+	input : lambda wildcards : "A_raw_data/bam_files/" + SAMPLE[wildcards.condition][wildcards.time][wildcards.donor]
+	output : "D_results_merged/bam_links/{condition}_{time}_{donor}.bam"
+	shell : """ ln -s "$(pwd)/{input}" {output} """
+
+rule merge_donors :
+	input : lambda wildcards : expand("D_results_merged/bam_links/{{condition}}_{{time}}_{donor}.bam", donor=wildcards.list_donors.split("-"))
+	output : "D_results_merged/bam_files_merged/{condition}_{time}_{list_donors}.bam"
+	conda : "B_environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ samtools merge {output} {input} """
 
 # ====================
 # Generic BAM analysis
@@ -83,7 +115,7 @@ rule bam_indexing :
 #   It is updated only if the value changed
 #   So the downsampling is redone only if the value changed
 checkpoint bam_downsampling_value :
-	input : expand("D_results_merged/bam_files_merged/{sample}.bam.nbreads", sample = SAMPLE)
+	input : expand("D_results_merged/bam_files_merged/{sample}.bam.nbreads", sample = list_merged_sample())
 	output : temp("D_results_merged/downsampled_bam/downsampling_value_new")
 	params : output = "D_results_merged/downsampled_bam/downsampling_value"
 	shell : """
@@ -168,9 +200,9 @@ rule create_grange :
 
 # Report on quality of original bam files
 rule qc_report :
-	input : expand("D_results_merged/bam_files_merged/{sample}.bam.qc", sample = SAMPLE)
+	input : expand("D_results_merged/bam_files_merged/{sample}.bam.qc", sample = list_merged_sample())
 	output : "D_results_merged/reports/qc_report.csv"
-	params : sample =  SAMPLE
+	params : sample =  list_merged_sample()
 	shell : """
         sample=({params.sample})
         qc_files=({input})
@@ -185,9 +217,9 @@ rule qc_report :
 
 # Report on nbreads in all original bam files
 rule nbreads_prereport :
-	input : expand("D_results_merged/bam_files_merged/{sample}.bam.nbreads", sample = SAMPLE),
+	input : expand("D_results_merged/bam_files_merged/{sample}.bam.nbreads", sample = list_merged_sample()),
 	output : "D_results_merged/reports/nbreads_prereport.csv"
-	params : sample = SAMPLE
+	params : sample = list_merged_sample()
 	shell : """
         sample=({params.sample})
         nbreads=($(cat {input}))
@@ -202,10 +234,10 @@ rule nbreads_prereport :
 # Report on nbreads before and after downsampling for all bam files
 rule nbreads_report :
 	input :
-		before_downsampling = expand("D_results_merged/bam_files_merged/{sample}.bam.nbreads", sample = SAMPLE),
-		after_downsampling = expand("D_results_merged/downsampled_bam/{sample}_downsampled.bam.nbreads", sample = SAMPLE)
+		before_downsampling = expand("D_results_merged/bam_files_merged/{sample}.bam.nbreads", sample = list_merged_sample()),
+		after_downsampling = expand("D_results_merged/downsampled_bam/{sample}_downsampled.bam.nbreads", sample = list_merged_sample())
 	output : "D_results_merged/reports/nbreads_report.csv"
-	params : sample = SAMPLE
+	params : sample = list_merged_sample()
 	shell : """
         sample=({params.sample})
         nbreads_before=($(cat {input.before_downsampling}))
@@ -221,10 +253,10 @@ rule nbreads_report :
 # ATTENTION bash ne gère pas les nombres à virgule, il faut utiliser bc -l
 rule nbpeaks_report :
 	input :
-	    before_threshold = expand("D_results_merged/macs2_output/{sample}_peaks.broadPeak", sample = SAMPLE),
-		after_threshold = expand("D_results_merged/macs2_output/{sample}.threshold.broadPeak",sample = SAMPLE)
+	    before_threshold = expand("D_results_merged/macs2_output/{sample}_peaks.broadPeak", sample = list_merged_sample()),
+		after_threshold = expand("D_results_merged/macs2_output/{sample}.threshold.broadPeak",sample = list_merged_sample())
 	output : "D_results_merged/reports/nbpeaks_report.csv"
-	params : sample = SAMPLE
+	params : sample = list_merged_sample()
 	shell : """
         sample=({params.sample})
         nbpeaks_before=($(wc -l {input.before_threshold} | awk '{{ print $1 }}'))
@@ -239,14 +271,14 @@ rule nbpeaks_report :
 	"""
 
 rule nbreads_per_peak_report :
-	input : expand("D_results_merged/macs2_output/{sample}.readcount.csv", sample = SAMPLE)
+	input : expand("D_results_merged/macs2_output/{sample}.readcount.csv", sample = list_merged_sample())
 	output : "D_results_merged/reports/nbreads_per_peak_report.csv"
 	shell : """ awk ' FNR==1 && NR!=1 {{next}}{{print}}' {input} > {output} """  # pour enlever le header qui restait avec cat {input} > {output}
 
 rule peak_per_chromosome_report :
 	input :
-		before_threshold = expand("D_results_merged/macs2_output/{sample}_peaks.df.csv", sample = SAMPLE),
-		after_threshold = expand("D_results_merged/macs2_output/{sample}.threshold.df.csv", sample = SAMPLE)
+		before_threshold = expand("D_results_merged/macs2_output/{sample}_peaks.df.csv", sample = list_merged_sample()),
+		after_threshold = expand("D_results_merged/macs2_output/{sample}.threshold.df.csv", sample = list_merged_sample())
 	output :
 		before_threshold = "D_results_merged/reports/nbpeaks_per_chromosome_report.csv",
 		after_threshold = "D_results_merged/reports/nbpeaks_per_chromosome_threshold_report.csv"
