@@ -7,9 +7,10 @@
 # Ignore files created by snakemake
 /.snakemake/
 
-/A_raw_data/
+/A_raw_data
 /C_scripts/tests.R
 /D_results/
+/D_results_merged/
 /link_tab.csv
 /dag.pdf
 
