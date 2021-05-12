@@ -15,8 +15,8 @@ with open('link_tab.csv', mode='r') as file:
 	reader = csv.reader(file)
 	next(reader, None)  # skip the headers
 	for row in reader: #pour chaque ligne du reader
-		use, condition, time, donor, manip, raw_file = row #les valeurs contenuent dans la row sont réparties dans des variable
-		if use == "false":
+		included, condition, time, donor, manip, raw_file = row #les valeurs contenuent dans la row sont réparties dans des variable
+		if included == "false":
 			continue
 		SAMPLE[condition][time][donor] = raw_file # remplissage du dictionnaire SAMPLE
 
