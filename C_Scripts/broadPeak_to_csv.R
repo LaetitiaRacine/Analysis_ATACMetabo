@@ -3,7 +3,7 @@
 # Command line to call the script in linux consol
 #**********************
 
-"Transform .broadPeak file into organized data.frame (.csv) to be used with FeatureCount or ready to be transformed int oGrange
+"Transform .broadPeak file into organized data.frame (.csv) to be used with FeatureCount or ready to be transformed into Grange
 
 Usage:
 broadPeak_to_csv.R [options] <broadPeak_input> <output>

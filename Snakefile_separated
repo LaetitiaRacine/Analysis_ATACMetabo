@@ -1,0 +1,284 @@
+# Commande pour lancer le script (se placer dans le dossier contenant le snakefile):
+# snakemake -s Snakefile_separated --use-conda --reason --cores 12 (ou 16 selon l'ordinateur)
+
+from snakemake.io import expand
+from collections import defaultdict
+from functools import partial
+
+SAMPLE = defaultdict(partial(defaultdict, dict))
+THRESHOLD_TO_TEST = ['10', '20', '30', '40', '50', '60', '70', '80', '90', '100']
+
+import csv
+with open('analysis_choice.csv', mode='r') as file:
+	reader = csv.reader(file)
+	next(reader, None)  # skip the headers
+	for row in reader:
+		included, condition, time, donor, manip, raw_file = row
+		if included == "false":
+			continue
+		SAMPLE[condition][time][donor] = raw_file
+
+def list_sample():
+	result = []
+	for condition, times in SAMPLE.items():
+		for time, donors in times.items():
+			for donor, file in donors.items():
+				result.append("_".join((condition, time, donor)))
+	return result
+
+wildcard_constraints:
+	donor="D\d+",
+	donors="D\d+(,D\d+)+",
+	sample="\w+_\d{2}h_D\d+"
+
+
+rule all :
+	input :
+		### Intermediated files
+		expand("D_Analysis/bam/{sample}.bam.bai", sample = list_sample()),
+		expand("D_Analysis/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_sample()),
+		expand("D_Analysis/genomic_ranges/{sample}_threshold_{value}_ann.csv", sample = list_sample(), value = THRESHOLD_TO_TEST),
+		### Reports
+		"D_Analysis/reports/qc_report.csv",
+		"D_Analysis/reports/nbreads_report.csv",
+		"D_Analysis/reports/nbpeaks_per_chromosome_report.csv",
+    	"D_Analysis/reports/nbpeaks_nbreads_long_report.csv",
+    	"D_Analysis/reports/nbpeaks_nbreads_wide_report.csv",
+    	"D_Analysis/reports/nbpeaks_report.csv",
+		### Graph from qc_report.csv
+		"D_Analysis/reports/qc_report_hist_donor-QCP_nb_mapped.png",
+		"D_Analysis/reports/qc_report_hist_time-QCP_nb_mapped.png",
+		"D_Analysis/reports/qc_report_hist_donor-QCP_pct_mapped.png",
+		"D_Analysis/reports/qc_report_hist_time-QCP_pct_mapped.png",
+		"D_Analysis/reports/qc_report_hist_donor-QCP_pct_properly_paired.png",
+		"D_Analysis/reports/qc_report_hist_time-QCP_pct_properly_paired.png",
+		"D_Analysis/reports/qc_report_line_donor-QCP_nb_mapped.png",
+		"D_Analysis/reports/qc_report_line_cond-QCP_nb_mapped.png",
+		"D_Analysis/reports/qc_report_line_donor-QCP_pct_mapped.png",
+		"D_Analysis/reports/qc_report_line_cond-QCP_pct_mapped.png",
+		"D_Analysis/reports/qc_report_line_donor-QCP_pct_properly_paired.png",
+		"D_Analysis/reports/qc_report_line_cond-QCP_pct_properly_paired.png",
+		### Graph from nbreads_report.csv
+		"D_Analysis/reports/nbreads_report_hist_donor-nbreads_before_downsampling.png",
+		"D_Analysis/reports/nbreads_report_hist_time-nbreads_before_downsampling.png",
+		"D_Analysis/reports/nbreads_report_hist_donor-nbreads_after_downsampling.png",
+		"D_Analysis/reports/nbreads_report_hist_time-nbreads_after_downsampling.png",
+		"D_Analysis/reports/nbreads_report_line_donor-nbreads_before_downsampling.png",
+		"D_Analysis/reports/nbreads_report_line_cond-nbreads_before_downsampling.png",
+		"D_Analysis/reports/nbreads_report_line_donor-nbreads_after_downsampling.png",
+		"D_Analysis/reports/nbreads_report_line_cond-nbreads_after_downsampling.png",
+		### Graph from nbpeaks_per_chromosome_report
+		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_single-peak_count_threshold_0.pdf",
+		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_multi-peak_count_threshold_0.pdf",
+		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_single-peak_percentage_threshold_0.pdf",
+		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_multi-peak_percentage_threshold_0.pdf",
+		### Graph from nbpeaks_report
+		"D_Analysis/reports/nbpeaks_report_hist_donor-lost_percentage.pdf",
+		"D_Analysis/reports/nbpeaks_report_hist_time-lost_percentage.pdf",
+		"D_Analysis/reports/nbpeaks_report_hist_donor-nbpeaks.pdf",
+		"D_Analysis/reports/nbpeaks_report_hist_time-nbpeaks.pdf",
+		"D_Analysis/reports/nbpeaks_report_hist_donor-mean_nbreads.pdf",
+		"D_Analysis/reports/nbpeaks_report_hist_time-mean_nbreads.pdf",
+		"D_Analysis/reports/nbpeaks_report_line_donor-lost_percentage.pdf",
+		"D_Analysis/reports/nbpeaks_report_line_cond-lost_percentage.pdf",
+		"D_Analysis/reports/nbpeaks_report_line_donor-nbpeaks.pdf",
+		"D_Analysis/reports/nbpeaks_report_line_cond-nbpeaks.pdf",
+		"D_Analysis/reports/nbpeaks_report_line_donor-mean_nbreads.pdf",
+		"D_Analysis/reports/nbpeaks_report_line_cond-mean_nbreads.pdf",
+		### Graph from nbpeaks_nbreads_long_report
+		"D_Analysis/reports/nbpeaks_nbreads_long_report_freq-nbreads.pdf"
+
+#*******************************************************************************************************************************************************
+#*** Rules of Bloc 2 : Individual study and QC of each sample
+#*******************************************************************************************************************************************************
+
+rule link_rename_raw :
+	input : lambda wildcards : "A_Initial_data/bam_files/" + SAMPLE[wildcards.condition][wildcards.time][wildcards.donor]
+	output : "D_Analysis/bam/{condition}_{time}_{donor}.bam"
+	shell : """ ln -s "$(pwd)/{input}" {output} """
+
+# ====================
+# Generic BAM analysis
+# ====================
+
+rule bam_qc :
+	input : "{file}.bam"
+	output : "{file}.bam.qc"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ samtools flagstat -O tsv {input} > {output} """
+
+rule bam_nbreads :
+	input : "{file}.bam"
+	output : "{file}.bam.nbreads"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ samtools view -c {input} > {output} """
+
+rule bam_indexing :
+	input : "{file}.bam"
+	output : "{file}.bam.bai"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ samtools index {input} > {output} """
+
+# ================
+# BAM downsampling
+# ================
+
+checkpoint bam_downsampling_value :
+	input : expand("D_Analysis/bam/{sample}.bam.nbreads", sample = list_sample())
+	output : "D_Analysis/downsampled_bam/downsampling_value_new"
+	params : output = "D_Analysis/downsampled_bam/downsampling_value"
+	shell : """
+        min=$(cat {input} | sort -n | head -1)
+        echo "Downsampling value = $min"
+        if [ -f {params.output} ] && [ "$(cat {params.output})" = "$min" ]; then
+          echo "Unchanged"
+        else
+          echo "Changed"
+          echo "$min" > {params.output}
+        fi
+        echo "$min" > {output}
+        """
+
+def bam_downsampling_input(wildcards):
+	checkpoints.bam_downsampling_value.get()
+	return {
+		'bam': "D_Analysis/bam/{sample}.bam",
+		'nbreads': "D_Analysis/bam/{sample}.bam.nbreads",
+		'downsampling_value': rules.bam_downsampling_value.params.output
+	}
+
+rule bam_downsampling :
+	input : unpack(bam_downsampling_input)
+	output : "D_Analysis/downsampled_bam/{sample}_downsampled.bam"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """
+        count=$(cat {input.nbreads})
+        min=$(cat {input.downsampling_value})
+        echo "Downsampling value = $min"
+        downsampling_ratio=$(echo "$min/$count" | bc -l)
+        samtools view -s 1$downsampling_ratio -b {input.bam} > {output}
+        """
+
+#=============
+# Peak analysis
+#=============
+
+rule peak_calling :
+	input : "D_Analysis/downsampled_bam/{sample}_downsampled.bam"
+	output : "D_Analysis/macs2_output/{sample}_peaks.broadPeak"
+	params :
+		prefix = "{sample}",
+		macs2_output_dir = "D_Analysis/macs2_output"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ macs2 callpeak -t {input} -n {params.prefix} --outdir {params.macs2_output_dir} -f BAMPE -g hs -B --broad --broad-cutoff 0.1 """
+
+rule broadPeak_to_csv :
+	input : "D_Analysis/macs2_output/{file}_peaks.broadPeak"
+	output :
+		csv = "D_Analysis/macs2_output/{file}.df.csv",
+		rule_order = touch("D_Analysis/touch/mytask_csv_{file}.done")
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/broadPeak_to_csv.R {input} {output.csv} """
+
+rule readcount_matrix :
+	input :
+		csv = "D_Analysis/macs2_output/{sample}.df.csv",
+		bam = "D_Analysis/downsampled_bam/{sample}_downsampled.bam"
+	output :
+		readcount = "D_Analysis/macs2_output/{sample}.readcount.csv",
+		rule_order = touch("D_Analysis/touch/mytask_readcount_{sample}.done")
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/peaks_featureCounts.R --output_csv {output.readcount} {input.csv} {input.bam}"""
+
+rule peaks_threshold :
+	input :
+		peaks_broadPeak = "D_Analysis/macs2_output/{sample}_peaks.broadPeak",
+		readcount_matrix = "D_Analysis/macs2_output/{sample}.readcount.csv"
+	output : "D_Analysis/macs2_output/{sample}_threshold_{value}_peaks.broadPeak"
+	params :
+		value = "{value}"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """	Rscript C_Scripts/peaks_filter.R {input.peaks_broadPeak} {input.readcount_matrix} {params.value} {output} """
+
+rule create_grange :
+	input : "D_Analysis/macs2_output/{name}.df.csv"
+	output : "D_Analysis/genomic_ranges/{name}.gr.rds"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/GRanges.R from_csv -o {output} {input} """
+
+rule annotate_grange :
+	input :
+		annotations = "A_Initial_data/Annotation_TSS_pm1kb_int_ex_53utr_ctcf_cpg_histo_gr.rda",
+		grange = "D_Analysis/genomic_ranges/{name}.gr.rds"
+	output :
+		grange_annot = "D_Analysis/genomic_ranges/{name}_ann.gr.rds",
+		csv_annot = "D_Analysis/genomic_ranges/{name}_ann.csv"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/annotate_grange.R --output_csv {output.csv_annot} -a {input.annotations} {input.grange} {output.grange_annot} """
+
+# =======
+# Reports and QC plots
+# =======
+
+rule qc_report :
+	input : expand("D_Analysis/bam/{sample}.bam.qc", sample = list_sample())
+	output : "D_Analysis/reports/qc_report.csv"
+	params : sample = list_sample()
+	shell : """
+        sample=({params.sample})
+        qc_files=({input})
+        echo "condition;time;donor;QCP_nb_read;QCF_nb_read;QCP_secondary;QCF_secondary;QCP_supplementary;QCF_supplementary;QCP_duplicates;QCF_duplicates;QCP_nb_mapped;QCF_nb_mapped;QCP_pct_mapped;QCF_pct_mapped;QCP_paired_in_sequencing;QCF_paired_in_sequencing;QCP_read1;QCF_read1;QCP_read2;QCF_read2;QCP_nb_properly_paired;QCF_nb_properly_paired;QCP_pct_properly_paired;QCF_pct_properly_paired;QCP_with_itself_and_mate_mapped;QCF_with_itself_and_mate_mapped;QCP_nb_singletons;QCF_nb_singletons;QCP_pct_singletons;QCF_pct_singletons;QCP_with_mate_mapped_to_a_different_chr;QCF_with_mate_mapped_to_a_different_chr;QCP_with_mate_mapped_to_a_different_chr_mapQ_over_5;QCF_with_mate_mapped_to_a_different_chr_mapQ_over_5" > {output}
+        for ((i=0;i<${{#sample[*]}};++i)); do
+          cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
+          time=$(echo "${{sample[i]}}" | cut -d_ -f2)
+          donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
+          qc_info=$(cat "${{qc_files[i]}}" | awk -F$'\t' '{{ print $1";"$2 }}' | paste -sd ';' - | tr -d '%')
+          echo -e "${{cond}};${{time}};${{donor}};${{qc_info}}"
+        done >> {output}
+        """
+
+rule nbreads_report :
+	input :
+		before_downsampling = expand("D_Analysis/bam/{sample}.bam.nbreads", sample = list_sample()),
+		after_downsampling = expand("D_Analysis/downsampled_bam/{sample}_downsampled.bam.nbreads", sample = list_sample()),
+		downsampling_value = "D_Analysis/downsampled_bam/downsampling_value_new"
+	output : "D_Analysis/reports/nbreads_report.csv"
+	params : sample = list_sample()
+	shell : """
+        sample=({params.sample})
+        nbreads_before=($(cat {input.before_downsampling}))
+        nbreads_after=($(cat {input.after_downsampling}))
+		value=($(cat {input.downsampling_value}))
+        echo "downsampling_value;condition;time;donor;nbreads_before_downsampling;nbreads_after_downsampling" > {output}
+        for ((i=0;i<${{#sample[*]}};++i)); do
+          cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
+          time=$(echo "${{sample[i]}}" | cut -d_ -f2)
+          donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
+          echo "$value;$cond;$time;$donor;${{nbreads_before[i]}};${{nbreads_after[i]}}"
+        done >> {output}
+        """
+
+rule peaks_report :
+	input :
+		df_csv = expand("D_Analysis/touch/mytask_csv_{sample}.done", sample = list_sample()),
+		df_csv_threshold = expand("D_Analysis/touch/mytask_csv_{sample}_threshold_{value}.done", sample = list_sample(), value = THRESHOLD_TO_TEST),
+		readcount = expand("D_Analysis/touch/mytask_readcount_{sample}.done", sample = list_sample()),
+	output :
+		chrom = "D_Analysis/reports/nbpeaks_per_chromosome_report.csv",
+		glob_long = "D_Analysis/reports/nbpeaks_nbreads_long_report.csv",
+		glob_wide = "D_Analysis/reports/nbpeaks_nbreads_wide_report.csv",
+		nbpeaks = "D_Analysis/reports/nbpeaks_report.csv"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/peaks_report.R "D_Analysis/macs2_output/" {output.chrom} {output.glob_long} {output.glob_wide} {output.nbpeaks} """
+
+rule plot_reports :
+	wildcard_constraints:
+		format="hist_donor|hist_time|line_cond|line_donor|freq|chrom_single|chrom_multi",
+		colname="[a-zA-Z_]+",
+		reportname="[a-z_]+",
+		extension="png|pdf",
+		threshold="|_threshold_[0-9]+"
+	input :"D_Analysis/reports/{reportname}.csv"
+	output : "D_Analysis/reports/{reportname}_{format}-{colname}{threshold}.{extension}",
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/report_plots_separated.R -o {output} {input} {wildcards.format} {wildcards.extension} {wildcards.colname} """

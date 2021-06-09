@@ -1,0 +1,3 @@
+INCLUDED,CONDITION,TIME,DONOR,MANIP,RAW FILE
+TRUE,cond1,00h,D1,manip1,filename1.bam
+FALSE,cond2,24h,D6,manip2,filename2.bam

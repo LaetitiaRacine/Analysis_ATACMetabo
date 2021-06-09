@@ -1,19 +1,10 @@
-# Ignore Rhistory files :
 .Rhistory
-
-# Ignore Rplots.pdf files
-/Rplots.pdf
-
-# Ignore files created by snakemake
 /.snakemake/
 
-/A_raw_data
-/C_scripts/tests.R
-/D_results/
-/D_results_merged/
-/link_tab.csv
-/dag.pdf
+/A_Initial_data
+/C_Scripts/tests.R
+/D_Analysis/
+/analysis_choice.csv
 
-/D_results_allsample_180121_11h27/
-/D_results_sans06h_180121_12h31/
-/D_results_sansD3_180121_13h31/
+/dag.pdf
+/Rplots.pdf

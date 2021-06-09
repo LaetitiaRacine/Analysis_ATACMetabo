@@ -1,0 +1,427 @@
+#############################################################
+# EXPLICATION DETAILLEE DU PIPELINE SNAKEMAKE POUR ATAC-SEQ #
+#############################################################
+
+## Appel du script dans la console linux :
+*******************************************
+$ snakemake -s NomDuSnakefile --use-conda --cores x --reason
+# --use-conda car le script fait intervenir des environements de travail (conda dans les rules)
+# --cores 2 permet de paralléliser les rules sur deux coeurs
+# --reason affiche l'output manquant ayant ordonné à la rule de tourner
+ # possibilité d'ajouter -n pour faire un dry run : affiche les jobs sans les faire
+
+
+## Chargement de fonctions python et snakemake
+****************************
+from snakemake.io import expand
+from collections import defaultdict
+from functools import partial
+
+
+## Définition de constantes (= en majuscule) utilisées dans les noms des outputs
+********************************************************************************
+# Création d'un dictionnaire vide contenant des dictionnaires
+SAMPLE = defaultdict(partial(defaultdict, dict))
+# Définition d'une constante qui peut être modifiée aisément par l'utilisateur du pipeline
+THRESHOLD_TO_TEST = ['10', '20', '30', '40', '50', '60', '70', '80', '90', '100']
+# Remplissage du dictionnaire SAMPLE à partir du fichier analysis_choice.csv : CODE EN PYTHON
+import csv
+with open('analysis_choice.csv', mode='r') as file:
+	reader = csv.reader(file) # chargement du fichier
+	next(reader, None)  # ne pas lire la première ligne (header)
+	for row in reader: # pour chaque ligne du reader
+		included, condition, time, donor, manip, raw_file = row # les valeurs contenues dans la row sont réparties dans des variables
+		if included == "false": # si l'échantillon ne fait pas partie de l'analyse, il n'est pas inclut dans la liste
+			continue
+		SAMPLE[condition][time][donor] = raw_file # remplissage du dictionnaire SAMPLE
+# Récupération de la liste des condition_time_sample à étudier
+	result = []
+	for condition, times in SAMPLE.items(): # for clé valeur dans dictionnaire SAMPLE (passe en revue toutes les variables dans le dictionnaire condition)
+		for time, donors in times.items():
+			result.append("_".join((condition, time, "-".join(donors.keys()))))
+	return result
+
+
+## Application de règles sur les wildcards
+******************************************
+# Les wildcards peuvent être utilisés pour désigner plusieurs possibilités.
+# Par exemple, dans les outputs, on utilise les wildcards à l'endroit où le nom change selon l'échantillon.
+# Ex : 2DG_00h_D1.document.extension et DON_16h_D9.document.extension
+# pour les prendre en compte tous les deux, on peut utiliser la ligne suivante : {sample}.document.extension
+# sample correspondra alors à une liste comprenant 2DG_00h_D1 et DON_16h_D9
+# Pour éviter des erreurs, on peut indiquer avec des expressions regex ce que peuvent contenir les futurs wildcards.
+wildcard_constraints:
+	donor="D\d+",
+	# D : la lettre D majuscule
+	# \d : n'importe quel nombre décimal
+	# \d+ : un ou plusieurs nombre décimaux
+	sample="\w+_\d{2}h_D\d+(-D\d+)+"
+	# \w+_ : un ou plusieurs caractères alphanumériques (lettre, chiffre ou underscore) suivi(s) de _
+	# \d{2}h_ : deux nombres décimaux suivis de _h
+	# D\d+(-D\d+)+ : il y a un ou plus -D\d après le premier => à corriger en zéro ou plus ????????????
+
+
+## Rule all : target du script
+*******************************
+# Cette règle doit contenir TOUS les outputs de règles qui ne sont pas repris en input dans une autre règle.
+rule all :
+	input :
+		### Intermediated files
+		expand("D_Analysis/bam/{sample}.bam.bai", sample = list_merged_sample()),
+		expand("D_Analysis/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_merged_sample()),
+		expand("D_Analysis/genomic_ranges/{sample}_threshold_{value}_ann.csv", sample = list_merged_sample(), value = THRESHOLD_TO_TEST),
+		### Reports
+		"D_Analysis/reports/qc_report.csv",
+		"D_Analysis/reports/nbreads_report.csv",
+		"D_Analysis/reports/nbpeaks_per_chromosome_report.csv",
+		"D_Analysis/reports/nbpeaks_nbreads_long_report.csv",
+		"D_Analysis/reports/nbpeaks_nbreads_wide_report.csv",
+		"D_Analysis/reports/nbpeaks_report.csv",
+		### Graph from qc_report.csv
+		"D_Analysis/reports/qc_report_hist-QCP_nb_mapped.png",
+		"D_Analysis/reports/qc_report_hist-QCP_pct_mapped.png",
+		"D_Analysis/reports/qc_report_hist-QCP_pct_properly_paired.png",
+		"D_Analysis/reports/qc_report_line-QCP_nb_mapped.png",
+		"D_Analysis/reports/qc_report_line-QCP_pct_mapped.png",
+		"D_Analysis/reports/qc_report_line-QCP_pct_properly_paired.png",
+		### Graph from nbreads_report.csv
+		"D_Analysis/reports/nbreads_report_hist-nbreads_before_downsampling.png",
+		"D_Analysis/reports/nbreads_report_hist-nbreads_after_downsampling.png",
+		"D_Analysis/reports/nbreads_report_line-nbreads_before_downsampling.png",
+		"D_Analysis/reports/nbreads_report_line-nbreads_after_downsampling.png",
+		### Graph from nbpeaks_per_chromosome_report
+		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_single-peak_count_threshold_0.pdf",
+		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_multi-peak_count_threshold_0.pdf",
+		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_single-peak_percentage_threshold_0.pdf",
+		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_multi-peak_percentage_threshold_0.pdf",
+		### Graph from nbpeaks_report
+		"D_Analysis/reports/nbpeaks_report_hist-lost_percentage.pdf",
+		"D_Analysis/reports/nbpeaks_report_hist-nbpeaks.pdf",
+		"D_Analysis/reports/nbpeaks_report_hist-mean_nbreads.pdf",
+		"D_Analysis/reports/nbpeaks_report_line-lost_percentage.pdf",
+		"D_Analysis/reports/nbpeaks_report_line-nbpeaks.pdf",
+		"D_Analysis/reports/nbpeaks_report_line-mean_nbreads.pdf",
+		### Graph from nbpeaks_nbreads_long_report
+		"D_Analysis/reports/nbpeaks_nbreads_long_report_freq-nbreads.pdf"
+# la fonction expand permet d'UTILISER une liste de paramètres contenus dans le/les wildcards utilisés.
+# dans expand, indispensable de mettre sample = list_merged_sample() même si le wildcard a été défini plus haut
+# ici, on utilise expand pour éviter de nommer manuellement tous les fichiers et permettre l'automatisation
+# ex 1ère ligne : on décrit tous les fichiers {sample}.bam.bai pour lesquels les valeurs de sample sont stockées dans la constante list_merged_sample()
+
+
+#*******************************************************************************************************************************************************
+#*** Rules of Bloc 2 : Individual study and QC of each sample
+#*******************************************************************************************************************************************************
+
+# Règle permettant de créer des liens vers les .bam brutes avec des noms plus courts et plus parlants
+rule link_rename_raw :
+	input : lambda wildcards : "A_Initial_data/bam_files/" + SAMPLE[wildcards.condition][wildcards.time][wildcards.donor]
+# lambda dans l'input permet d'utiliser des fonctions : ici on utilise la fonction  ???
+	output : "D_Analysis/bam/{condition}_{time}_{donor}.bam"
+	shell : """ ln -s "$(pwd)/{input}" {output} """
+# ln : make links between files
+# -s : make symbolic links instead of hard links
+# $(pwd) : print working directory
+
+
+# Règle qui permet de merger les fichiers .bam des différents donneurs correspondant à la même condition_time
+rule merge_donors :
+	input : lambda wildcards : expand("D_Analysis/bam/{{condition}}_{{time}}_{donor}.bam", donor=wildcards.list_donors.split("-"))
+# lambda dans l'input permet d'utiliser la fonction split
+# on met {{}} quand il s'agit d'une partie variable mais qu'on ne veut pas qu'elle soit considérée comme un wildcard de travail
+# on s'intéresse ici aux donneurs {donor} qui correspondent aux même {{condition}}_{{times}}
+# donor=wildcards.list_donors.split("-") : création du wildcard list_donors à partir du wildcard donor
+# on passe en revue tous les fichiers du expand, on conserve ceux qui ont le même condition_time et on met le nom des donneurs à la suite, séparés par un -
+	output : "D_Analysis/bam/{condition}_{time}_{list_donors}.bam"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+# conda => appel d'un environnement de travail défini par un yaml
+	shell : """ samtools merge {output} {input} """
+# samtools merge : merges multiple sorted input files into a single output
+
+
+# ====================
+# Generic BAM analysis
+# ====================
+
+# Règle qui prend en input n'importe quel fichier .bam et qui applique la fonction samtools flagstat dessus
+rule bam_qc :
+	input : "{file}.bam"
+	output : "{file}.bam.qc"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ samtools flagstat -O tsv {input} > {output} """
+# samtools flagstat : counts the number of alignments for each FLAG type
+# -O tsv : selects a tab-separated values format for the output
+
+
+# Règle pour compter le nombre de reads dans un fichier .bam
+rule bam_nbreads :
+	input : "{file}.bam"
+	output : "{file}.bam.nbreads"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ samtools view -c {input} > {output} """
+# samtools view : views and converts SAM/BAM/CRAM files
+# -c : instead of printing the alignments, only count them and print the total number
+
+
+# Règle pour créer des fichiers .bai (visualisation sur IGV) à partir de fichier .bam
+rule bam_indexing :
+	input : "{file}.bam"
+	output : "{file}.bam.bai"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ samtools index {input} > {output} """
+
+
+# ================
+# BAM downsampling
+# ================
+
+# Checkpoint permettant de mettre à jour la liste des règles à faire tourner
+# Compute the downsampling value to equalize the number of reads in all bam files
+# params.output is used to persist if the downsampling value does not change
+#   It is updated only if the value changed
+#   So the downsampling is redone only if the value changed
+checkpoint bam_downsampling_value :
+	input : expand("D_Analysis/bam/{sample}.bam.nbreads", sample = list_merged_sample())
+	output : "D_Analysis/downsampled_bam/downsampling_value_new"
+	params : output = "D_Analysis/downsampled_bam/downsampling_value"
+# l'outil params permet d'utiliser des wildcards dans le shell autre que {input} ou {output}
+	shell : """
+        min=$(cat {input} | sort -n | head -1)
+        echo "Downsampling value = $min"
+        if [ -f {params.output} ] && [ "$(cat {params.output})" = "$min" ]; then
+          echo "Unchanged"
+        else
+          echo "Changed"
+          echo "$min" > {params.output}
+        fi
+        echo "$min" > {output}
+        """
+# $ devant les variables
+# cat : concatenate files and print on the standard output
+# sort : sort lines of text files => range dans l'ordre croissant
+# sort -n : compare according to string numerical value
+# head - 1 : output the first part of files => ici la première ligne
+# min=$(cat {input} | sort -n | head -1) => range les données dans l'ordre croissant et extrait la première valeur pour la ranger dans la variable min
+# -f {params.output} ] : check if file exists, return true if the file is a regular file (not a directory or a device)
+
+
+def bam_downsampling_input(wildcards):
+	checkpoints.bam_downsampling_value.get()
+	return {
+		'bam': "D_Analysis/bam/{sample}.bam",
+		'nbreads': "D_Analysis/bam/{sample}.bam.nbreads",
+		'downsampling_value': rules.bam_downsampling_value.params.output
+	}
+
+
+# Downsample bam file to the downsampling value in the downsampling_value file
+rule bam_downsampling :
+	input : unpack(bam_downsampling_input)
+	output : "D_Analysis/downsampled_bam/{sample}_downsampled.bam"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """
+        count=$(cat {input.nbreads})
+        min=$(cat {input.downsampling_value})
+        echo "Downsampling value = $min"
+        downsampling_ratio=$(echo "$min/$count" | bc -l)
+        samtools view -s 1$downsampling_ratio -b {input.bam} > {output}
+        """
+# downsampling value = nombre mini de reads dans tous les échantillons étudiés
+# lors du downsampling, on conserve un pourcentage des reads (nombre mini reads/nombre reads du fichier)
+# samtools view : views and converts SAM/BAM/CRAM files
+# -s FLOAT : Output only a proportion of the input alignments. The integer and fractional parts of the -s INT.FRAC option are used separately:
+# the part after the decimal point sets the fraction of templates/pairs to be kept, while the integer part is used as a seed that influences which subset of reads is kept.
+# bc -l : pour travailler avec des nombres à virgule
+
+
+#=============
+# Peak analysis
+#=============
+
+# Règle pour aligner les reads sur le génome et en déduire les peaks formés
+rule peak_calling :
+	input : "D_Analysis/downsampled_bam/{sample}_downsampled.bam"
+	output : "D_Analysis/macs2_output/{sample}_peaks.broadPeak"
+	params :
+		prefix = "{sample}",
+		macs2_output_dir = "D_Analysis/macs2_output"
+# l'outil params permet d'utiliser des wildcards dans le shell autre que {input} ou {output}
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ macs2 callpeak -t {input} -n {params.prefix} --outdir {params.macs2_output_dir} -f BAMPE -g hs -B --broad --broad-cutoff 0.1 """
+# -t : données d'entrées (paramètre indispensable)
+# -n : suivi du nouveau nom qu'on souhaite donner à l'output
+# --outdir : path pour stocker les fichiers de sortie
+# -f : format de l'input file =>  BAMPE : the 5’ end plus the observed template length will both be recorded so in later analysis, MACS2 piles up the actual entire observed fragment/template instead of estimating a fixed DNA fragment length.
+# -g hs : alignement sur le génome homo sapiens
+# -B : stockage des fragments dans un fichier bedGraph
+# --broad-cutoff
+
+
+# Règle appelant un script R externe pour changer le format du fichier .broadPeak en .csv
+rule broadPeak_to_csv :
+	input : "D_Analysis/macs2_output/{file}_peaks.broadPeak"
+	output :
+			csv = "D_Analysis/macs2_output/{file}.df.csv",
+			rule_order = touch("D_Analysis/touch/mytask_csv_{file}.done")
+# le fichier touch est un fichier vide créé lorsque la règle est finie, il est utilisé pour ordonner les rules entre elles (cf. rule peaks_report)
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/broadPeak_to_csv.R {input} {output.csv} """
+# Rscript path/nomDuScript.R : permet de lancer le script dans la console
+# Le script R inclut la librairie docopt pour permettre son appel avec des fonctions dans la console linux.
+# !!! Lors de l'appel du script, il faut respecter l'ordre des arguments définit dans le script R dans "doc".
+
+
+# Règle appelant un script R externe avec la fonction FeatureCount de Rsubread pour compter le nombre de read par peak détecté
+rule readcount_matrix :
+	input :
+		csv = "D_Analysis/macs2_output/{sample}.df.csv",
+		bam = "D_Analysis/downsampled_bam/{sample}_downsampled.bam"
+	output :
+		readcount = "D_Analysis/macs2_output/{sample}.readcount.csv",
+		rule_order = touch("D_Analysis/touch/mytask_readcount_{sample}.done")
+# le fichier touch est un fichier vide créé lorsque la règle est finie, il est utilisé pour ordonner les rules entre elles (cf. rule peaks_report)
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/peaks_featureCounts.R --output_csv {output.readcount} {input.csv} {input.bam} """
+
+
+# Règle appelant un script R externe pour appliquer un threshold sur le nombre de read/peak autorisé
+rule peaks_threshold :
+	input :
+		peaks_broadPeak = "D_Analysis/macs2_output/{sample}_peaks.broadPeak",
+		readcount_matrix = "D_Analysis/macs2_output/{sample}.readcount.csv"
+	output : "D_Analysis/macs2_output/{sample}_threshold_{value}_peaks.broadPeak"
+	params :
+		value = "{value}"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/peaks_filter.R {input.peaks_broadPeak} {input.readcount_matrix} {params.value} {output} """
+
+
+# Règle appelant un script R externe pour créer des Granges à partir de fichier csv
+rule create_grange :
+	input : "D_Analysis/macs2_output/{name}.df.csv"
+	output : "D_Analysis/genomic_ranges/{name}.gr.rds"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/GRanges.R from_csv -o {output} {input} """
+
+
+# Règle appelant un script R externe pour annoter des Granges avec les éléments génomiques contenus dans le tableau passé en input
+rule annotate_grange :
+	input :
+		annotations = "A_Initial_data/Annotation_TSS_pm1kb_int_ex_53utr_ctcf_cpg_histo_gr.rda",
+		grange = "D_Analysis/genomic_ranges/{name}.gr.rds"
+	output :
+		grange_annot = "D_Analysis/genomic_ranges/{name}_ann.gr.rds",
+		csv_annot = "D_Analysis/genomic_ranges/{name}_ann.csv"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/annotate_grange.R --output_csv {output.csv_annot} -a {input.annotations} {input.grange} {output.grange_annot} """
+
+
+# =======
+# Reports and QC plots
+# =======
+
+# Report on quality of original bam files
+rule qc_report :
+	input : expand("D_Analysis/bam/{sample}.bam.qc", sample = list_merged_sample())
+	output : "D_Analysis/reports/qc_report.csv"
+	params : sample =  list_merged_sample()
+	shell : """
+			sample=({params.sample})
+			qc_files=({input})
+			echo "condition;time;donor;QCP_nb_read;QCF_nb_read;QCP_secondary;QCF_secondary;QCP_supplementary;QCF_supplementary;QCP_duplicates;QCF_duplicates;QCP_nb_mapped;QCF_nb_mapped;QCP_pct_mapped;QCF_pct_mapped;QCP_paired_in_sequencing;QCF_paired_in_sequencing;QCP_read1;QCF_read1;QCP_read2;QCF_read2;QCP_nb_properly_paired;QCF_nb_properly_paired;QCP_pct_properly_paired;QCF_pct_properly_paired;QCP_with_itself_and_mate_mapped;QCF_with_itself_and_mate_mapped;QCP_nb_singletons;QCF_nb_singletons;QCP_pct_singletons;QCF_pct_singletons;QCP_with_mate_mapped_to_a_different_chr;QCF_with_mate_mapped_to_a_different_chr;QCP_with_mate_mapped_to_a_different_chr_mapQ_over_5;QCF_with_mate_mapped_to_a_different_chr_mapQ_over_5" > {output}
+			for ((i=0;i<${{#sample[*]}};++i)); do
+			  cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
+			  time=$(echo "${{sample[i]}}" | cut -d_ -f2)
+			  donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
+			  qc_info=$(cat "${{qc_files[i]}}" | awk -F$'\t' '{{ print $1";"$2 }}' | paste -sd ';' - | tr -d '%')
+			  echo -e "${{cond}};${{time}};${{donor}};${{qc_info}}"
+			done >> {output}
+			"""
+# Attention, il ne faut pas revenir à la ligne dans le premier echo car on veut que ce soit tout sur la même ligne dans l'output (nom des colonnes)
+# echo "${{sample[i]}}" | cut -d_ -f1 : affiche le premier field (placé avant _) du sample[i]
+	# cut : remove sections from each line of files
+	# -d : use delimiter instead of tab for field delimiter
+	# -f : select only these fields
+	# exemple : 2DG_00h_D1 => affichera seulement 2DG
+# qc_info=$(cat "${{qc_files[i]}}" | awk -F$'\t' '{{ print $1";"$2 }}' | paste -sd ';' - | tr -d '%')
+	# awk : pattern scanning and processing language
+	# awk -F : define the input field separator
+	# paste : merge lines of files
+	# paste -s : paste one file at a time instead of in parallel
+	# paste -d ';' : use character ; instead of tab
+	# tr : translate or delete characters
+	# tr -d : delete character
+	# exemple :  79761260	0	total (QC-passed reads + QC-failed reads)
+	#            0	0	secondary
+	#            0	0	supplementary
+	#            0	0	duplicates
+	#            77256714	0	mapped
+	#             96.86%	N/A	mapped %
+	#            79761260	0	paired in sequencing
+	#            39920652	0	read1
+	#            39840608	0	read2
+	#            73747411	0	properly paired
+	#            92.46%	N/A	properly paired %
+	#            77142640	0	with itself and mate mapped
+	#            114074	0	singletons
+	#            0.14%	N/A	singletons %
+	#            154541	0	with mate mapped to a different chr
+	#            131414	0	with mate mapped to a different chr (mapQ>=5)
+	# Les caractères sont séparés par des tab. On peut ainsi récupérer seulement les deux premières colonnes correspondant aux chiffres.
+	# S'il y a un % dans ce qui est récupéré, il est effacé et on conserve seulement le chiffre.
+	# Les listes de chiffres sont rangés dans la variable qc_info en étant séparés par un ';'.
+
+
+# Report on nbreads before and after downsampling for all bam files
+rule nbreads_report :
+	input :
+		before_downsampling = expand("D_Analysis/bam/{sample}.bam.nbreads", sample = list_merged_sample()),
+		after_downsampling = expand("D_Analysis/downsampled_bam/{sample}_downsampled.bam.nbreads", sample = list_merged_sample()),
+		downsampling_value = "D_Analysis/downsampled_bam/downsampling_value_new"
+	output : "D_Analysis/reports/nbreads_report.csv"
+	params : sample = list_merged_sample()
+	shell : """
+			sample=({params.sample})
+			nbreads_before=($(cat {input.before_downsampling}))
+			nbreads_after=($(cat {input.after_downsampling}))
+			value=($(cat {input.downsampling_value}))
+			echo "downsampling_value;condition;time;donor;nbreads_before_downsampling;nbreads_after_downsampling" > {output}
+			for ((i=0;i<${{#sample[*]}};++i)); do
+			  cond=$(echo "${{sample[i]}}" | cut -d_ -f1)
+			  time=$(echo "${{sample[i]}}" | cut -d_ -f2)
+			  donor=$(echo "${{sample[i]}}" | cut -d_ -f3)
+			  echo "$value;$cond;$time;$donor;${{nbreads_before[i]}};${{nbreads_after[i]}}"
+			done >> {output}
+        """
+
+
+# Règle appelant un script R externe et permettant de créer plusieurs reports
+rule peaks_report :
+	input :
+		df_csv = expand("D_Analysis/touch/mytask_csv_{sample}.done", sample = list_merged_sample()),
+		df_csv_threshold = expand("D_Analysis/touch/mytask_csv_{sample}_threshold_{value}.done", sample = list_merged_sample(), value = THRESHOLD_TO_TEST),
+		readcount = expand("D_Analysis/touch/mytask_readcount_{sample}.done", sample = list_merged_sample()),
+# Les fichiers touch sont des fichiers vides créés en output de règles précédentes (readcount_matrix et broadPeak_to_csv).
+# Comme le script R a besoin que tous les fichiers readcount et csv soient créés pour fonctionner correctement, cette technique permet de forcer l'ordre des règles.
+# Indispensable lorsqu'on lance le pipeline sur plusieurs coeurs, la rule peaks_report ne sera pas lancer avant que tous les readcounts et csv, avec et sans threshold soient créés.
+	output :
+		chrom = "D_Analysis/reports/nbpeaks_per_chromosome_report.csv",
+		glob_long = "D_Analysis/reports/nbpeaks_nbreads_long_report.csv",
+		glob_wide = "D_Analysis/reports/nbpeaks_nbreads_wide_report.csv",
+		nbpeaks = "D_Analysis/reports/nbpeaks_report.csv"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/peaks_report.R "D_Analysis/macs2_output/" {output.chrom} {output.glob_long} {output.glob_wide} {output.nbpeaks} """
+
+
+# Règle appelant un script R externe qui prend un report en entrée et permet de tracer les graphiques associés
+rule plot_reports :
+	wildcard_constraints:
+		format="hist|line|freq|chrom_single|chrom_multi",
+		colname="[a-zA-Z_]+",
+		reportname="[a-z_]+",
+		extension="png|pdf",
+		threshold="|_threshold_[0-9]+"
+	input :"D_Analysis/reports/{reportname}.csv"
+	output : "D_Analysis/reports/{reportname}_{format}-{colname}{threshold}.{extension}",
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/report_plots_merged.R -o {output} {input} {wildcards.format} {wildcards.extension} {wildcards.colname} """
