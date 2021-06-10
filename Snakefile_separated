@@ -11,7 +11,7 @@ THRESHOLD_TO_TEST = ['10', '20', '30', '40', '50', '60', '70', '80', '90', '100'
 import csv
 with open('analysis_choice.csv', mode='r') as file:
 	reader = csv.reader(file)
-	next(reader, None)  # skip the headers
+	next(reader, None)
 	for row in reader:
 		included, condition, time, donor, manip, raw_file = row
 		if included == "false":
@@ -28,16 +28,15 @@ def list_sample():
 
 wildcard_constraints:
 	donor="D\d+",
-	donors="D\d+(,D\d+)+",
 	sample="\w+_\d{2}h_D\d+"
-
 
 rule all :
 	input :
-		### Intermediated files
+		## Intermediated files
 		expand("D_Analysis/bam/{sample}.bam.bai", sample = list_sample()),
 		expand("D_Analysis/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_sample()),
 		expand("D_Analysis/genomic_ranges/{sample}_threshold_{value}_ann.csv", sample = list_sample(), value = THRESHOLD_TO_TEST),
+		expand("D_Analysis/genomic_ranges/{sample}_ann.csv", sample = list_sample()),
 		### Reports
 		"D_Analysis/reports/qc_report.csv",
 		"D_Analysis/reports/nbreads_report.csv",

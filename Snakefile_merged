@@ -5,7 +5,7 @@ from snakemake.io import expand
 from collections import defaultdict
 from functools import partial
 
-SAMPLE = defaultdict(partial(defaultdict, dict)) # Création d'un dictionnaire vide contenant des dictionnaires
+SAMPLE = defaultdict(partial(defaultdict, dict))
 THRESHOLD_TO_TEST = ['10', '20', '30', '40', '50', '60', '70', '80', '90', '100']
 
 import csv
@@ -27,8 +27,7 @@ def list_merged_sample() :
 
 wildcard_constraints:
 	donor="D\d+",
-	donors="D\d+(-D\d+)+",
-	sample="\w+_\d{2}h_D\d+(-D\d+)+"
+	sample="\w+_\d{2}h_D\d+(-D\d+)*"
 
 rule all :
 	input :
@@ -36,6 +35,7 @@ rule all :
 		expand("D_Analysis/bam/{sample}.bam.bai", sample = list_merged_sample()),
 		expand("D_Analysis/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_merged_sample()),
 		expand("D_Analysis/genomic_ranges/{sample}_threshold_{value}_ann.csv", sample = list_merged_sample(), value = THRESHOLD_TO_TEST),
+		expand("D_Analysis/genomic_ranges/{sample}_ann.csv", sample = list_merged_sample()),
 		### Reports
 		"D_Analysis/reports/qc_report.csv",
 		"D_Analysis/reports/nbreads_report.csv",
