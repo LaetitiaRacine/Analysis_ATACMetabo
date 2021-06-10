@@ -2,6 +2,8 @@
 # EXPLICATION DETAILLEE DU PIPELINE SNAKEMAKE POUR ATAC-SEQ #
 #############################################################
 
+# RAPPEL : dans snakemake, on part toujours de la fin => on regarde l'output et on cherche la règle et les inputs qui permettent de le créer
+
 ## Appel du script dans la console linux :
 *******************************************
 $ snakemake -s NomDuSnakefile --use-conda --cores x --reason
@@ -54,11 +56,11 @@ wildcard_constraints:
 	donor="D\d+",
 	# D : la lettre D majuscule
 	# \d : n'importe quel nombre décimal
-	# \d+ : un ou plusieurs nombre décimaux
-	sample="\w+_\d{2}h_D\d+(-D\d+)+"
+	# \d+ : un ou plusieurs nombres décimaux
+	sample="\w+_\d{2}h_D\d+(-D\d+)*"
 	# \w+_ : un ou plusieurs caractères alphanumériques (lettre, chiffre ou underscore) suivi(s) de _
 	# \d{2}h_ : deux nombres décimaux suivis de _h
-	# D\d+(-D\d+)+ : il y a un ou plus -D\d après le premier => à corriger en zéro ou plus ????????????
+	# D\d+(-D\d+)+ : il y a zéro ou plus -D\d après le premier
 
 
 ## Rule all : target du script
@@ -116,7 +118,7 @@ rule all :
 # Règle permettant de créer des liens vers les .bam brutes avec des noms plus courts et plus parlants
 rule link_rename_raw :
 	input : lambda wildcards : "A_Initial_data/bam_files/" + SAMPLE[wildcards.condition][wildcards.time][wildcards.donor]
-# lambda dans l'input permet d'utiliser des fonctions : ici on utilise la fonction  ???
+# lambda dans l'input permet d'utiliser l'argument wildcards =>  ici on cherche le fichier à partir du dictionnaire qui correspond à l'output demandé
 	output : "D_Analysis/bam/{condition}_{time}_{donor}.bam"
 	shell : """ ln -s "$(pwd)/{input}" {output} """
 # ln : make links between files
@@ -127,11 +129,12 @@ rule link_rename_raw :
 # Règle qui permet de merger les fichiers .bam des différents donneurs correspondant à la même condition_time
 rule merge_donors :
 	input : lambda wildcards : expand("D_Analysis/bam/{{condition}}_{{time}}_{donor}.bam", donor=wildcards.list_donors.split("-"))
-# lambda dans l'input permet d'utiliser la fonction split
+# lambda dans l'input permet d'utiliser l'argument wildcards qui indique ici à quoi correspond le wildcard donor
 # on met {{}} quand il s'agit d'une partie variable mais qu'on ne veut pas qu'elle soit considérée comme un wildcard de travail
-# on s'intéresse ici aux donneurs {donor} qui correspondent aux même {{condition}}_{{times}}
-# donor=wildcards.list_donors.split("-") : création du wildcard list_donors à partir du wildcard donor
-# on passe en revue tous les fichiers du expand, on conserve ceux qui ont le même condition_time et on met le nom des donneurs à la suite, séparés par un -
+# on s'intéresse ici aux donneurs {donor} qui correspondent aux mêmes {{condition}}_{{time}}
+# donor=wildcards.list_donors.split("-") : le wildcard list_donors de l'output permet de définir ce qui constitue le wildcard donor dans l'input
+# la condition et le time correpsondent directement aux wildcards de l'output
+# pour le wildcard donor, il faut partir du wildcard list_donors de l'output et le séparer sur la base des - pour obtenir les différents doneurs (et on extrait ensuite un fichier par donneur)
 	output : "D_Analysis/bam/{condition}_{time}_{list_donors}.bam"
 	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
 # conda => appel d'un environnement de travail défini par un yaml
