@@ -1,4 +1,6 @@
-#!/usr/bin/env Rscript
+#**********************
+# Command line to call the script in linux consol
+#**********************
 
 "Add annotations in GRanges files
 
@@ -14,11 +16,14 @@ Options:
 library(docopt)
 arguments <- docopt(doc)
 
+#**********************
+# Libraries loading and function definition
+#**********************
+
 suppressPackageStartupMessages({
   suppressWarnings(library(GenomicRanges))
   suppressWarnings(library(dplyr))
 })
-# library(stringr)
 
 loadRData<-function(fileName){
   #loads an RData file, and returns it
@@ -26,10 +31,19 @@ loadRData<-function(fileName){
   get(ls()[ls()!="fileName"])
 }
 
-# the "big" file containing "all" the annotations
-all_annotations = loadRData(arguments$annotations_file)
+#**********************
+# Files loading
+#**********************
 
+# the "big" file containing "all" the annotations
+all_annotations = readRDS(arguments$annotations_file)
+
+# the grange to annotate
 gr = readRDS(arguments$grange_input_file)
+
+#**********************
+# Annotation of the grange
+#**********************
 
 # First a matrix is created filled with FALSE and added to the Grange
 annotations_types = levels(factor(all_annotations$annotation))
@@ -44,7 +58,7 @@ for (i in 1:ncol(metadata)){
   mcols(gr)[queryHits(overlaps),i] = TRUE
 }
 
-colnames(mcols(gr)) = c("UTR3P","UTR5P","CpG", "CTCF","Exons","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Introns","TSS_mp1kb")
+colnames(mcols(gr)) = c("UTR3P","UTR5P","CpG", "CTCF","Exons","Introns","TSS_mp1kb")
 
 mcols(gr) = as_tibble(mcols(gr)) %>%
   dplyr::mutate(Intergenic = ifelse(UTR3P == FALSE & UTR5P == FALSE & Exons == FALSE & Introns == FALSE & TSS_mp1kb == FALSE, TRUE, FALSE)) %>%
@@ -52,8 +66,7 @@ mcols(gr) = as_tibble(mcols(gr)) %>%
   dplyr::mutate(CpG_Intergenic = ifelse(Intergenic == TRUE & CpG == TRUE, TRUE, FALSE)) %>%
   dplyr::mutate(CTCF_Intergenic = ifelse(Intergenic == TRUE & CTCF == TRUE, TRUE, FALSE)) %>%
   dplyr::mutate(CTCF_in_intron = ifelse(Introns == TRUE & CTCF == TRUE, TRUE, FALSE)) %>%
-  dplyr::mutate(CTCF_in_exon = ifelse(Exons == TRUE & CTCF == TRUE, TRUE, FALSE)) %>%
-  dplyr::mutate(Histone_Intergenic = ifelse(Intergenic== TRUE & (H3K27me3 | H3K36me3 | H3K4me1 | H3K4me3 | H3K9me3) == TRUE, TRUE, FALSE))
+  dplyr::mutate(CTCF_in_exon = ifelse(Exons == TRUE & CTCF == TRUE, TRUE, FALSE)) 
 
 saveRDS(gr, arguments$grange_annotated_file)
 if (!is.null(arguments$output_csv)) {
