@@ -28,12 +28,22 @@ arguments <- docopt(doc)
 suppressPackageStartupMessages({
   suppressWarnings(library(Rsubread))
   suppressWarnings(library(dplyr))
+  suppressWarnings(library(stringr))
 })
 
 df = read.table(arguments$csv_input, sep=";", header = TRUE, stringsAsFactors = FALSE)
 
+if (str_detect(arguments$csv_input, pattern = "_ann")) {
+  df = df[,c(1:4,6)] %>%
+    dplyr::mutate(Name = str_extract(string = arguments$csv_input, pattern = "(?<=/genomic_ranges/).+(?=_ann)")) %>%
+    dplyr::mutate(GeneID = paste(Name, X, sep="_peak_") ) %>%
+    dplyr::rename(Chr = seqnames, Start = start, End = end, Strand = strand) %>%
+    dplyr::select(-Name, - X) %>%
+    dplyr::select(GeneID, Chr, Start, End, Strand) 
+}
+
 #**********************
-# Scrit to create readcount_matrix
+# Script to create readcount_matrix
 #**********************
   
 readCount <- featureCounts(files = arguments$bam_input,
@@ -60,6 +70,6 @@ if (!is.null(arguments$output_csv)) {
   count_df = tibble::rownames_to_column(data.frame(readCount$counts), "name")
   count_df = tidyr::separate(count_df, col = name, into = c("condition","time","donor", "peak", "num"), sep="_", remove = TRUE) 
   count_df = tidyr::unite(count_df, col = peakID, peak, num, sep="_", remove = TRUE)
-  colnames(count_df) = c("condition","time","donor","peakID","nbreads")
+  if (!str_detect(arguments$csv_input, pattern = "_ann")) { colnames(count_df) = c("condition","time","donor","peakID","nbreads") }
   write.table(count_df, file = arguments$output_csv, sep = ";", row.names = FALSE) 
-}
+  }

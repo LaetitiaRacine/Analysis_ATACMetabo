@@ -52,6 +52,8 @@ rule all :
 		#expand("D_Analysis/genomic_ranges/{sample}_threshold_{value}.gr.rds", sample = list_sample_intersect(), value = THRESHOLD_TO_TEST),
 		expand("D_Analysis/genomic_ranges/{sample}_threshold_{value}_ann.csv", sample = list_sample_intersect(), value = THRESHOLD_TO_TEST),
 		expand("D_Analysis/genomic_ranges/{sample}_ann.csv", sample = list_sample_intersect()),
+		expand("D_Analysis/macs2_output/{sample}_ann.readcount.csv", sample = list_sample_intersect()),
+		expand("D_Analysis/macs2_output/{sample}_threshold_{value}_ann.readcount.csv", sample = list_sample_intersect(), value = THRESHOLD_TO_TEST),
 		### Reports
 		"D_Analysis/reports/qc_report.csv",
 		"D_Analysis/reports/nbreads_report.csv",
@@ -240,6 +242,17 @@ rule annotate_grange :
 		csv_annot = "D_Analysis/genomic_ranges/{name}_ann.csv"
 	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_Scripts/annotate_grange.R --output_csv {output.csv_annot} -a {input.annotations} {input.grange} {output.grange_annot} """
+
+rule readcount_intersection :
+	wildcard_constraints :
+		list_donors="D\d+(,D\d+)+",
+		threshold="|_threshold_[0-9]+"
+	input :
+		csv = "D_Analysis/genomic_ranges/{condition}_{time}_{list_donors}{threshold}_ann.csv",
+		bam = lambda wildcards : expand("D_Analysis/downsampled_bam/{{condition}}_{{time}}_{donor}_downsampled.bam", donor=wildcards.list_donors.split(","))
+	output : "D_Analysis/macs2_output/{condition}_{time}_{list_donors}{threshold}_ann.readcount.csv"
+	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
+	shell : """ Rscript C_Scripts/peaks_featureCounts.R --output_csv {output} {input.csv} {input.bam} """
 
 
 # =======
