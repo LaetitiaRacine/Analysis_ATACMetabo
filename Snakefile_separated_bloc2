@@ -6,8 +6,7 @@ from collections import defaultdict
 from functools import partial
 
 SAMPLE = defaultdict(partial(defaultdict, dict))
-THRESHOLD_TO_TEST = ['10']
-#'20', '30', '40', '50', '60', '70', '80', '90', '100'
+THRESHOLD_TO_TEST = ['10', '20', '30', '40', '50', '60', '70', '80', '90', '100']
 
 import csv
 with open('analysis_choice.csv', mode='r') as file:
@@ -34,8 +33,8 @@ def list_sample_intersect() :
 			result.append("_".join((condition, time, ",".join(donors.keys()))))
 	return result
 
-print(list_sample())
-print(list_sample_intersect())
+# print(list_sample())
+# print(list_sample_intersect())
 
 wildcard_constraints:
 	donor="D\d+",
@@ -48,61 +47,59 @@ rule all :
 		expand("D_Analysis/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_sample()),
 		expand("D_Analysis/genomic_ranges/{sample}_threshold_{value}_ann.csv", sample = list_sample(), value = THRESHOLD_TO_TEST),
 		expand("D_Analysis/genomic_ranges/{sample}_ann.csv", sample = list_sample()),
-		#expand("D_Analysis/genomic_ranges/{sample}.gr.rds", sample = list_sample_intersect()),
-		#expand("D_Analysis/genomic_ranges/{sample}_threshold_{value}.gr.rds", sample = list_sample_intersect(), value = THRESHOLD_TO_TEST),
 		expand("D_Analysis/genomic_ranges/{sample}_threshold_{value}_ann.csv", sample = list_sample_intersect(), value = THRESHOLD_TO_TEST),
 		expand("D_Analysis/genomic_ranges/{sample}_ann.csv", sample = list_sample_intersect()),
 		expand("D_Analysis/macs2_output/{sample}_ann.readcount.csv", sample = list_sample_intersect()),
 		expand("D_Analysis/macs2_output/{sample}_threshold_{value}_ann.readcount.csv", sample = list_sample_intersect(), value = THRESHOLD_TO_TEST),
-		### Reports
-		"D_Analysis/reports/qc_report.csv",
-		"D_Analysis/reports/nbreads_report.csv",
-		"D_Analysis/reports/nbpeaks_per_chromosome_report.csv",
-    	"D_Analysis/reports/nbpeaks_nbreads_long_report.csv",
-    	"D_Analysis/reports/nbpeaks_nbreads_wide_report.csv",
-    	"D_Analysis/reports/nbpeaks_report.csv",
-		# ### Graph from qc_report.csv
-		# "D_Analysis/reports/qc_report_hist_donor-QCP_nb_mapped.png",
-		# "D_Analysis/reports/qc_report_hist_time-QCP_nb_mapped.png",
-		# "D_Analysis/reports/qc_report_hist_donor-QCP_pct_mapped.png",
-		# "D_Analysis/reports/qc_report_hist_time-QCP_pct_mapped.png",
-		# "D_Analysis/reports/qc_report_hist_donor-QCP_pct_properly_paired.png",
-		# "D_Analysis/reports/qc_report_hist_time-QCP_pct_properly_paired.png",
-		# "D_Analysis/reports/qc_report_line_donor-QCP_nb_mapped.png",
-		# "D_Analysis/reports/qc_report_line_cond-QCP_nb_mapped.png",
-		# "D_Analysis/reports/qc_report_line_donor-QCP_pct_mapped.png",
-		# "D_Analysis/reports/qc_report_line_cond-QCP_pct_mapped.png",
-		# "D_Analysis/reports/qc_report_line_donor-QCP_pct_properly_paired.png",
-		# "D_Analysis/reports/qc_report_line_cond-QCP_pct_properly_paired.png",
-		# ### Graph from nbreads_report.csv
-		# "D_Analysis/reports/nbreads_report_hist_donor-nbreads_before_downsampling.png",
-		# "D_Analysis/reports/nbreads_report_hist_time-nbreads_before_downsampling.png",
-		# "D_Analysis/reports/nbreads_report_hist_donor-nbreads_after_downsampling.png",
-		# "D_Analysis/reports/nbreads_report_hist_time-nbreads_after_downsampling.png",
-		# "D_Analysis/reports/nbreads_report_line_donor-nbreads_before_downsampling.png",
-		# "D_Analysis/reports/nbreads_report_line_cond-nbreads_before_downsampling.png",
-		# "D_Analysis/reports/nbreads_report_line_donor-nbreads_after_downsampling.png",
-		# "D_Analysis/reports/nbreads_report_line_cond-nbreads_after_downsampling.png",
-		# ### Graph from nbpeaks_per_chromosome_report
-		# "D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_single-peak_count_threshold_0.pdf",
-		# "D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_multi-peak_count_threshold_0.pdf",
-		# "D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_single-peak_percentage_threshold_0.pdf",
-		# "D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_multi-peak_percentage_threshold_0.pdf",
-		# ### Graph from nbpeaks_report
-		# "D_Analysis/reports/nbpeaks_report_hist_donor-lost_percentage.pdf",
-		# "D_Analysis/reports/nbpeaks_report_hist_time-lost_percentage.pdf",
-		# "D_Analysis/reports/nbpeaks_report_hist_donor-nbpeaks.pdf",
-		# "D_Analysis/reports/nbpeaks_report_hist_time-nbpeaks.pdf",
-		# "D_Analysis/reports/nbpeaks_report_hist_donor-mean_nbreads.pdf",
-		# "D_Analysis/reports/nbpeaks_report_hist_time-mean_nbreads.pdf",
-		# "D_Analysis/reports/nbpeaks_report_line_donor-lost_percentage.pdf",
-		# "D_Analysis/reports/nbpeaks_report_line_cond-lost_percentage.pdf",
-		# "D_Analysis/reports/nbpeaks_report_line_donor-nbpeaks.pdf",
-		# "D_Analysis/reports/nbpeaks_report_line_cond-nbpeaks.pdf",
-		# "D_Analysis/reports/nbpeaks_report_line_donor-mean_nbreads.pdf",
-		# "D_Analysis/reports/nbpeaks_report_line_cond-mean_nbreads.pdf",
-		# ### Graph from nbpeaks_nbreads_long_report
-		# "D_Analysis/reports/nbpeaks_nbreads_long_report_freq-nbreads.pdf"
+		# ### Reports
+		# "D_Analysis/reports/qc_report.csv",
+		# "D_Analysis/reports/nbreads_report.csv",
+		# "D_Analysis/reports/nbpeaks_per_chromosome_report.csv",
+    	# "D_Analysis/reports/nbpeaks_nbreads_long_report.csv",
+    	# "D_Analysis/reports/nbpeaks_nbreads_wide_report.csv",
+    	# "D_Analysis/reports/nbpeaks_report.csv",
+		### Graph from qc_report.csv
+		"D_Analysis/reports/qc_report_hist_donor-QCP_nb_mapped.png",
+		"D_Analysis/reports/qc_report_hist_time-QCP_nb_mapped.png",
+		"D_Analysis/reports/qc_report_hist_donor-QCP_pct_mapped.png",
+		"D_Analysis/reports/qc_report_hist_time-QCP_pct_mapped.png",
+		"D_Analysis/reports/qc_report_hist_donor-QCP_pct_properly_paired.png",
+		"D_Analysis/reports/qc_report_hist_time-QCP_pct_properly_paired.png",
+		"D_Analysis/reports/qc_report_line_donor-QCP_nb_mapped.png",
+		"D_Analysis/reports/qc_report_line_cond-QCP_nb_mapped.png",
+		"D_Analysis/reports/qc_report_line_donor-QCP_pct_mapped.png",
+		"D_Analysis/reports/qc_report_line_cond-QCP_pct_mapped.png",
+		"D_Analysis/reports/qc_report_line_donor-QCP_pct_properly_paired.png",
+		"D_Analysis/reports/qc_report_line_cond-QCP_pct_properly_paired.png",
+		### Graph from nbreads_report.csv
+		"D_Analysis/reports/nbreads_report_hist_donor-nbreads_before_downsampling.png",
+		"D_Analysis/reports/nbreads_report_hist_time-nbreads_before_downsampling.png",
+		"D_Analysis/reports/nbreads_report_hist_donor-nbreads_after_downsampling.png",
+		"D_Analysis/reports/nbreads_report_hist_time-nbreads_after_downsampling.png",
+		"D_Analysis/reports/nbreads_report_line_donor-nbreads_before_downsampling.png",
+		"D_Analysis/reports/nbreads_report_line_cond-nbreads_before_downsampling.png",
+		"D_Analysis/reports/nbreads_report_line_donor-nbreads_after_downsampling.png",
+		"D_Analysis/reports/nbreads_report_line_cond-nbreads_after_downsampling.png",
+		### Graph from nbpeaks_per_chromosome_report
+		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_single-peak_count_threshold_0.pdf",
+		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_multi-peak_count_threshold_0.pdf",
+		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_single-peak_percentage_threshold_0.pdf",
+		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_multi-peak_percentage_threshold_0.pdf",
+		### Graph from nbpeaks_report
+		"D_Analysis/reports/nbpeaks_report_hist_donor-lost_percentage.pdf",
+		"D_Analysis/reports/nbpeaks_report_hist_time-lost_percentage.pdf",
+		"D_Analysis/reports/nbpeaks_report_hist_donor-nbpeaks.pdf",
+		"D_Analysis/reports/nbpeaks_report_hist_time-nbpeaks.pdf",
+		"D_Analysis/reports/nbpeaks_report_hist_donor-mean_nbreads.pdf",
+		"D_Analysis/reports/nbpeaks_report_hist_time-mean_nbreads.pdf",
+		"D_Analysis/reports/nbpeaks_report_line_donor-lost_percentage.pdf",
+		"D_Analysis/reports/nbpeaks_report_line_cond-lost_percentage.pdf",
+		"D_Analysis/reports/nbpeaks_report_line_donor-nbpeaks.pdf",
+		"D_Analysis/reports/nbpeaks_report_line_cond-nbpeaks.pdf",
+		"D_Analysis/reports/nbpeaks_report_line_donor-mean_nbreads.pdf",
+		"D_Analysis/reports/nbpeaks_report_line_cond-mean_nbreads.pdf",
+		### Graph from nbpeaks_nbreads_long_report
+		"D_Analysis/reports/nbpeaks_nbreads_long_report_freq-nbreads.pdf"
 
 #*******************************************************************************************************************************************************
 #*** Rules of Bloc 2 : Individual study and QC of each sample
@@ -253,7 +250,6 @@ rule readcount_intersection :
 	output : "D_Analysis/macs2_output/{condition}_{time}_{list_donors}{threshold}_ann.readcount.csv"
 	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_Scripts/peaks_featureCounts.R --output_csv {output} {input.csv} {input.bam} """
-
 
 # =======
 # Reports and QC plots

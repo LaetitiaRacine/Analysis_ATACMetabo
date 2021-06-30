@@ -30,8 +30,8 @@ dir.create("D_Analysis/reports")
 tab_before = data.frame()
 tab_after = data.frame()
 
-dir_readcount = paste0(arguments$input.directory, list.files(arguments$input.directory, pattern = "readcount.csv"))
-dir_df_before = paste0(arguments$input.directory, list.files(arguments$input.directory, pattern = "D[[:digit:]].df.csv"))
+dir_readcount = paste0(arguments$input.directory, list.files(arguments$input.directory, pattern = "_D[[:digit:]].readcount.csv"))
+dir_df_before = paste0(arguments$input.directory, list.files(arguments$input.directory, pattern = "_D[[:digit:]].df.csv"))
 dir_df_after = paste0(arguments$input.directory, list.files(arguments$input.directory, pattern = "threshold_[[:digit:]]{2,3}.df.csv"))
 
 for (i in 1:length(dir_df_before)) {
