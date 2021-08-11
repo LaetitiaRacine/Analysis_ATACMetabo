@@ -196,7 +196,7 @@ rule create_grange :
 
 rule annotate_grange :
 	input :
-		annotations = "A_Initial_data/Annotation_TSS_pm1kb_int_ex_53utr_ctcf_cpg_woThisto_gr.rda",
+		annotations = "A_Initial_data/Annotation_TSS_pm1kb_int_ex_53utr_ctcf_cpg_woThisto_FANTOM5_prom_gr.rda",
 		grange = "D_Analysis/genomic_ranges/{name}.gr.rds"
 	output :
 		grange_annot = "D_Analysis/genomic_ranges/{name}_ann.gr.rds",

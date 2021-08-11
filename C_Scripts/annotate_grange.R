@@ -36,7 +36,7 @@ loadRData<-function(fileName){
 #**********************
 
 # the "big" file containing "all" the annotations
-all_annotations = readRDS(arguments$annotations_file)
+all_annotations = loadRData(arguments$annotations_file)
 
 # the grange to annotate
 gr = readRDS(arguments$grange_input_file)
