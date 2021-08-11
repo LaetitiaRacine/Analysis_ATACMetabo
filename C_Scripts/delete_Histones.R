@@ -43,4 +43,5 @@ gr = GRanges(seqnames = woh$seqnames,
              genome = "hg19",
              seqlengths = hg19_seqlengths)
 
-saveRDS(gr, file="Annotation_TSS_pm1kb_int_ex_53utr_ctcf_cpg_woThisto_gr.rda")
+# saveRDS(gr, file="Annotation_TSS_pm1kb_int_ex_53utr_ctcf_cpg_woThisto_gr.rda")
+save(gr, file="Annotation_TSS_pm1kb_int_ex_53utr_ctcf_cpg_woThisto_gr.rda")
