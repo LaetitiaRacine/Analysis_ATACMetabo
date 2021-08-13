@@ -58,10 +58,10 @@ for (i in 1:ncol(metadata)){
   mcols(gr)[queryHits(overlaps),i] = TRUE
 }
 
-colnames(mcols(gr)) = c("UTR3P","UTR5P","CpG", "CTCF","Exons","Introns","TSS_mp1kb")
+colnames(mcols(gr)) = c("UTR3P","UTR5P","CpG", "CTCF","Exons","FANTOM5_promoter","Introns","TSS_mp1kb")
 
 mcols(gr) = as_tibble(mcols(gr)) %>%
-  dplyr::mutate(Intergenic = ifelse(UTR3P == FALSE & UTR5P == FALSE & Exons == FALSE & Introns == FALSE & TSS_mp1kb == FALSE, TRUE, FALSE)) %>%
+  dplyr::mutate(Intergenic = ifelse(UTR3P == FALSE & UTR5P == FALSE & Exons == FALSE & Introns == FALSE & FANTOM5_promoter == FALSE & TSS_mp1kb == FALSE, TRUE, FALSE)) %>%
   dplyr::mutate(CpG_Intergenic = ifelse(Intergenic == TRUE & CpG == TRUE, TRUE, FALSE)) %>%
   dplyr::mutate(CpG_Intergenic = ifelse(Intergenic == TRUE & CpG == TRUE, TRUE, FALSE)) %>%
   dplyr::mutate(CTCF_Intergenic = ifelse(Intergenic == TRUE & CTCF == TRUE, TRUE, FALSE)) %>%
