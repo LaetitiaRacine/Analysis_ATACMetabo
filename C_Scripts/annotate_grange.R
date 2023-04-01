@@ -77,5 +77,5 @@ mcols(gr) = as_tibble(mcols(gr)) %>%
 
 saveRDS(gr, arguments$grange_annotated_file)
 if (!is.null(arguments$output_csv)) {
-  write.csv2(as.data.frame(gr), arguments$output_csv)
+  write.csv2(as.data.frame(gr), arguments$output_csv, row.names = FALSE)
 }

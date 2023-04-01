@@ -32,56 +32,56 @@ wildcard_constraints:
 rule all :
 	input :
 		### Intermediated files
-		expand("D_Analysis/bam/{sample}.bam.bai", sample = list_merged_sample()),
-		expand("D_Analysis/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_merged_sample()),
-		expand("D_Analysis/genomic_ranges/{sample}_threshold_{value}_ann.csv", sample = list_merged_sample(), value = THRESHOLD_TO_TEST),
-		expand("D_Analysis/genomic_ranges/{sample}_ann.csv", sample = list_merged_sample()),
+		expand("D_Analysis/snakefile_merged/bam/{sample}.bam.bai", sample = list_merged_sample()),
+		expand("D_Analysis/snakefile_merged/downsampled_bam/{sample}_downsampled.bam.bai", sample = list_merged_sample()),
+		expand("D_Analysis/snakefile_merged/genomic_ranges/{sample}_threshold_{value}_ann.csv", sample = list_merged_sample(), value = THRESHOLD_TO_TEST),
+		expand("D_Analysis/snakefile_merged/genomic_ranges/{sample}_ann.csv", sample = list_merged_sample()),
 		### Reports
-		"D_Analysis/reports/qc_report.csv",
-		"D_Analysis/reports/nbreads_report.csv",
-		"D_Analysis/reports/nbpeaks_per_chromosome_report.csv",
-		"D_Analysis/reports/nbpeaks_nbreads_long_report.csv",
-		"D_Analysis/reports/nbpeaks_nbreads_wide_report.csv",
-		"D_Analysis/reports/nbpeaks_report.csv",
+		"D_Analysis/snakefile_merged/reports/qc_report.csv",
+		"D_Analysis/snakefile_merged/reports/nbreads_report.csv",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_per_chromosome_report.csv",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_nbreads_long_report.csv",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_nbreads_wide_report.csv",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_report.csv",
 		### Graph from qc_report.csv
-		"D_Analysis/reports/qc_report_hist-QCP_nb_mapped.png",
-		"D_Analysis/reports/qc_report_hist-QCP_pct_mapped.png",
-		"D_Analysis/reports/qc_report_hist-QCP_pct_properly_paired.png",
-		"D_Analysis/reports/qc_report_line-QCP_nb_mapped.png",
-		"D_Analysis/reports/qc_report_line-QCP_pct_mapped.png",
-		"D_Analysis/reports/qc_report_line-QCP_pct_properly_paired.png",
+		"D_Analysis/snakefile_merged/reports/qc_report_hist-QCP_nb_mapped.png",
+		"D_Analysis/snakefile_merged/reports/qc_report_hist-QCP_pct_mapped.png",
+		"D_Analysis/snakefile_merged/reports/qc_report_hist-QCP_pct_properly_paired.png",
+		"D_Analysis/snakefile_merged/reports/qc_report_line-QCP_nb_mapped.png",
+		"D_Analysis/snakefile_merged/reports/qc_report_line-QCP_pct_mapped.png",
+		"D_Analysis/snakefile_merged/reports/qc_report_line-QCP_pct_properly_paired.png",
 		### Graph from nbreads_report.csv
-		"D_Analysis/reports/nbreads_report_hist-nbreads_before_downsampling.png",
-		"D_Analysis/reports/nbreads_report_hist-nbreads_after_downsampling.png",
-		"D_Analysis/reports/nbreads_report_line-nbreads_before_downsampling.png",
-		"D_Analysis/reports/nbreads_report_line-nbreads_after_downsampling.png",
+		"D_Analysis/snakefile_merged/reports/nbreads_report_hist-nbreads_before_downsampling.png",
+		"D_Analysis/snakefile_merged/reports/nbreads_report_hist-nbreads_after_downsampling.png",
+		"D_Analysis/snakefile_merged/reports/nbreads_report_line-nbreads_before_downsampling.png",
+		"D_Analysis/snakefile_merged/reports/nbreads_report_line-nbreads_after_downsampling.png",
 		### Graph from nbpeaks_per_chromosome_report
-		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_single-peak_count_threshold_0.pdf",
-		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_multi-peak_count_threshold_0.pdf",
-		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_single-peak_percentage_threshold_0.pdf",
-		"D_Analysis/reports/nbpeaks_per_chromosome_report_chrom_multi-peak_percentage_threshold_0.pdf",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_per_chromosome_report_chrom_single-peak_count_threshold_0.pdf",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_per_chromosome_report_chrom_multi-peak_count_threshold_0.pdf",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_per_chromosome_report_chrom_single-peak_percentage_threshold_0.pdf",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_per_chromosome_report_chrom_multi-peak_percentage_threshold_0.pdf",
 		### Graph from nbpeaks_report
-		"D_Analysis/reports/nbpeaks_report_hist-lost_percentage.pdf",
-		"D_Analysis/reports/nbpeaks_report_hist-nbpeaks.pdf",
-		"D_Analysis/reports/nbpeaks_report_hist-mean_nbreads.pdf",
-		"D_Analysis/reports/nbpeaks_report_line-lost_percentage.pdf",
-		"D_Analysis/reports/nbpeaks_report_line-nbpeaks.pdf",
-		"D_Analysis/reports/nbpeaks_report_line-mean_nbreads.pdf",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_report_hist-lost_percentage.pdf",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_report_hist-nbpeaks.pdf",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_report_hist-mean_nbreads.pdf",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_report_line-lost_percentage.pdf",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_report_line-nbpeaks.pdf",
+		"D_Analysis/snakefile_merged/reports/nbpeaks_report_line-mean_nbreads.pdf",
 		### Graph from nbpeaks_nbreads_long_report
-		"D_Analysis/reports/nbpeaks_nbreads_long_report_freq-nbreads.pdf"
+		"D_Analysis/snakefile_merged/reports/nbpeaks_nbreads_long_report_freq-nbreads.pdf"
 
 #*******************************************************************************************************************************************************
-#*** Rules of Bloc 2 : Individual study and QC of each sample
+#*** Rules of Bloc 2 
 #*******************************************************************************************************************************************************
 
 rule link_rename_raw :
 	input : lambda wildcards : "A_Initial_data/bam_files/" + SAMPLE[wildcards.condition][wildcards.time][wildcards.donor]
-	output : "D_Analysis/bam/{condition}_{time}_{donor}.bam"
+	output : "D_Analysis/snakefile_merged/bam/{condition}_{time}_{donor}.bam"
 	shell : """ ln -s "$(pwd)/{input}" {output} """
 
 rule merge_donors :
-	input : lambda wildcards : expand("D_Analysis/bam/{{condition}}_{{time}}_{donor}.bam", donor=wildcards.list_donors.split("-"))
-	output : "D_Analysis/bam/{condition}_{time}_{list_donors}.bam"
+	input : lambda wildcards : expand("D_Analysis/snakefile_merged/bam/{{condition}}_{{time}}_{donor}.bam", donor=wildcards.list_donors.split("-"))
+	output : "D_Analysis/snakefile_merged/bam/{condition}_{time}_{list_donors}.bam"
 	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ samtools merge {output} {input} """
 
@@ -112,9 +112,9 @@ rule bam_indexing :
 # ================
 
 checkpoint bam_downsampling_value :
-	input : expand("D_Analysis/bam/{sample}.bam.nbreads", sample = list_merged_sample())
-	output : "D_Analysis/downsampled_bam/downsampling_value_new"
-	params : output = "D_Analysis/downsampled_bam/downsampling_value"
+	input : expand("D_Analysis/snakefile_merged/bam/{sample}.bam.nbreads", sample = list_merged_sample())
+	output : "D_Analysis/snakefile_merged/downsampled_bam/downsampling_value_new"
+	params : output = "D_Analysis/snakefile_merged/downsampled_bam/downsampling_value"
 	shell : """
         min=$(cat {input} | sort -n | head -1)
         echo "Downsampling value = $min"
@@ -130,14 +130,14 @@ checkpoint bam_downsampling_value :
 def bam_downsampling_input(wildcards):
 	checkpoints.bam_downsampling_value.get()
 	return {
-		'bam': "D_Analysis/bam/{sample}.bam",
-		'nbreads': "D_Analysis/bam/{sample}.bam.nbreads",
+		'bam': "D_Analysis/snakefile_merged/bam/{sample}.bam",
+		'nbreads': "D_Analysis/snakefile_merged/bam/{sample}.bam.nbreads",
 		'downsampling_value': rules.bam_downsampling_value.params.output
 	}
 
 rule bam_downsampling :
 	input : unpack(bam_downsampling_input)
-	output : "D_Analysis/downsampled_bam/{sample}_downsampled.bam"
+	output : "D_Analysis/snakefile_merged/downsampled_bam/{sample}_downsampled.bam"
 	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
 	shell : """
         count=$(cat {input.nbreads})
@@ -152,55 +152,59 @@ rule bam_downsampling :
 #=============
 
 rule peak_calling :
-	input : "D_Analysis/downsampled_bam/{sample}_downsampled.bam"
-	output : "D_Analysis/macs2_output/{sample}_peaks.broadPeak"
+	input : "D_Analysis/snakefile_merged/downsampled_bam/{sample}_downsampled.bam"
+	output : "D_Analysis/snakefile_merged/macs2_output/{sample}_peaks.broadPeak"
 	params :
 		prefix = "{sample}",
-		macs2_output_dir = "D_Analysis/macs2_output"
+		macs2_output_dir = "D_Analysis/snakefile_merged/macs2_output"
 	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
-	shell : """ macs2 callpeak -t {input} -n {params.prefix} --outdir {params.macs2_output_dir} -f BAMPE -g hs -B --broad --broad-cutoff 0.1 """
+	shell : """
+		macs2 callpeak -t {input} -n {params.prefix} --outdir {params.macs2_output_dir} -f BAMPE -g hs -B --broad --broad-cutoff 0.1
+		find . -name "*.bdg" -type f -delete
+		find . -name "*.gappedPeak" -type f -delete
+		"""
 
 rule broadPeak_to_csv :
-	input : "D_Analysis/macs2_output/{file}_peaks.broadPeak"
+	input : "D_Analysis/snakefile_merged/macs2_output/{file}_peaks.broadPeak"
 	output :
-			csv = "D_Analysis/macs2_output/{file}.df.csv",
-			rule_order = touch("D_Analysis/touch/mytask_csv_{file}.done")
+			csv = "D_Analysis/snakefile_merged/macs2_output/{file}.df.csv",
+			rule_order = touch("D_Analysis/snakefile_merged/touch/mytask_csv_{file}.done")
 	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_Scripts/broadPeak_to_csv.R {input} {output.csv} """
 
 rule readcount_matrix :
 	input :
-		csv = "D_Analysis/macs2_output/{sample}.df.csv",
-		bam = "D_Analysis/downsampled_bam/{sample}_downsampled.bam"
+		csv = "D_Analysis/snakefile_merged/macs2_output/{sample}.df.csv",
+		bam = "D_Analysis/snakefile_merged/downsampled_bam/{sample}_downsampled.bam"
 	output :
-		readcount = "D_Analysis/macs2_output/{sample}.readcount.csv",
-		rule_order = touch("D_Analysis/touch/mytask_readcount_{sample}.done")
+		readcount = "D_Analysis/snakefile_merged/macs2_output/{sample}.readcount.csv",
+		rule_order = touch("D_Analysis/snakefile_merged/touch/mytask_readcount_{sample}.done")
 	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_Scripts/peaks_featureCounts.R --output_csv {output.readcount} {input.csv} {input.bam} """
 
 rule peaks_threshold :
 	input :
-		peaks_broadPeak = "D_Analysis/macs2_output/{sample}_peaks.broadPeak",
-		readcount_matrix = "D_Analysis/macs2_output/{sample}.readcount.csv"
-	output : "D_Analysis/macs2_output/{sample}_threshold_{value}_peaks.broadPeak"
+		peaks_broadPeak = "D_Analysis/snakefile_merged/macs2_output/{sample}_peaks.broadPeak",
+		readcount_matrix = "D_Analysis/snakefile_merged/macs2_output/{sample}.readcount.csv"
+	output : "D_Analysis/snakefile_merged/macs2_output/{sample}_threshold_{value}_peaks.broadPeak"
 	params :
 		value = "{value}"
 	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_Scripts/peaks_filter.R {input.peaks_broadPeak} {input.readcount_matrix} {params.value} {output} """
 
 rule create_grange :
-	input : "D_Analysis/macs2_output/{name}.df.csv"
-	output : "D_Analysis/genomic_ranges/{name}.gr.rds"
+	input : "D_Analysis/snakefile_merged/macs2_output/{name}.df.csv"
+	output : "D_Analysis/snakefile_merged/genomic_ranges/{name}.gr.rds"
 	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_Scripts/GRanges.R from_csv -o {output} {input} """
 
 rule annotate_grange :
 	input :
 		annotations = "A_Initial_data/Annotation_TSS_pm1kb_int_ex_53utr_ctcf_cpg_woThisto_FANTOM5_prom_gr.rda",
-		grange = "D_Analysis/genomic_ranges/{name}.gr.rds"
+		grange = "D_Analysis/snakefile_merged/genomic_ranges/{name}.gr.rds"
 	output :
-		grange_annot = "D_Analysis/genomic_ranges/{name}_ann.gr.rds",
-		csv_annot = "D_Analysis/genomic_ranges/{name}_ann.csv"
+		grange_annot = "D_Analysis/snakefile_merged/genomic_ranges/{name}_ann.gr.rds",
+		csv_annot = "D_Analysis/snakefile_merged/genomic_ranges/{name}_ann.csv"
 	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_Scripts/annotate_grange.R --output_csv {output.csv_annot} -a {input.annotations} {input.grange} {output.grange_annot} """
 
@@ -209,8 +213,8 @@ rule annotate_grange :
 # =======
 
 rule qc_report :
-	input : expand("D_Analysis/bam/{sample}.bam.qc", sample = list_merged_sample())
-	output : "D_Analysis/reports/qc_report.csv"
+	input : expand("D_Analysis/snakefile_merged/bam/{sample}.bam.qc", sample = list_merged_sample())
+	output : "D_Analysis/snakefile_merged/reports/qc_report.csv"
 	params : sample =  list_merged_sample()
 	shell : """
 			sample=({params.sample})
@@ -227,10 +231,10 @@ rule qc_report :
 
 rule nbreads_report :
 	input :
-		before_downsampling = expand("D_Analysis/bam/{sample}.bam.nbreads", sample = list_merged_sample()),
-		after_downsampling = expand("D_Analysis/downsampled_bam/{sample}_downsampled.bam.nbreads", sample = list_merged_sample()),
-		downsampling_value = "D_Analysis/downsampled_bam/downsampling_value_new"
-	output : "D_Analysis/reports/nbreads_report.csv"
+		before_downsampling = expand("D_Analysis/snakefile_merged/bam/{sample}.bam.nbreads", sample = list_merged_sample()),
+		after_downsampling = expand("D_Analysis/snakefile_merged/downsampled_bam/{sample}_downsampled.bam.nbreads", sample = list_merged_sample()),
+		downsampling_value = "D_Analysis/snakefile_merged/downsampled_bam/downsampling_value_new"
+	output : "D_Analysis/snakefile_merged/reports/nbreads_report.csv"
 	params : sample = list_merged_sample()
 	shell : """
 			sample=({params.sample})
@@ -248,16 +252,16 @@ rule nbreads_report :
 
 rule peaks_report :
 	input :
-		df_csv = expand("D_Analysis/touch/mytask_csv_{sample}.done", sample = list_merged_sample()),
-		df_csv_threshold = expand("D_Analysis/touch/mytask_csv_{sample}_threshold_{value}.done", sample = list_merged_sample(), value = THRESHOLD_TO_TEST),
-		readcount = expand("D_Analysis/touch/mytask_readcount_{sample}.done", sample = list_merged_sample()),
+		df_csv = expand("D_Analysis/snakefile_merged/touch/mytask_csv_{sample}.done", sample = list_merged_sample()),
+		df_csv_threshold = expand("D_Analysis/snakefile_merged/touch/mytask_csv_{sample}_threshold_{value}.done", sample = list_merged_sample(), value = THRESHOLD_TO_TEST),
+		readcount = expand("D_Analysis/snakefile_merged/touch/mytask_readcount_{sample}.done", sample = list_merged_sample()),
 	output :
-		chrom = "D_Analysis/reports/nbpeaks_per_chromosome_report.csv",
-		glob_long = "D_Analysis/reports/nbpeaks_nbreads_long_report.csv",
-		glob_wide = "D_Analysis/reports/nbpeaks_nbreads_wide_report.csv",
-		nbpeaks = "D_Analysis/reports/nbpeaks_report.csv"
+		chrom = "D_Analysis/snakefile_merged/reports/nbpeaks_per_chromosome_report.csv",
+		glob_long = "D_Analysis/snakefile_merged/reports/nbpeaks_nbreads_long_report.csv",
+		glob_wide = "D_Analysis/snakefile_merged/reports/nbpeaks_nbreads_wide_report.csv",
+		nbpeaks = "D_Analysis/snakefile_merged/reports/nbpeaks_report.csv"
 	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
-	shell : """ Rscript C_Scripts/peaks_report.R "D_Analysis/macs2_output/" {output.chrom} {output.glob_long} {output.glob_wide} {output.nbpeaks} """
+	shell : """ Rscript C_Scripts/peaks_report.R "D_Analysis/snakefile_merged/macs2_output/" {output.chrom} {output.glob_long} {output.glob_wide} {output.nbpeaks} """
 
 rule plot_reports :
 	wildcard_constraints:
@@ -266,7 +270,7 @@ rule plot_reports :
 		reportname="[a-z_]+",
 		extension="png|pdf",
 		threshold="|_threshold_[0-9]+"
-	input :"D_Analysis/reports/{reportname}.csv"
-	output : "D_Analysis/reports/{reportname}_{format}-{colname}{threshold}.{extension}",
+	input :"D_Analysis/snakefile_merged/reports/{reportname}.csv"
+	output : "D_Analysis/snakefile_merged/reports/{reportname}_{format}-{colname}{threshold}.{extension}",
 	conda : "B_Environments/ATACMetabo_main_env.locked.yaml"
 	shell : """ Rscript C_Scripts/report_plots_merged.R -o {output} {input} {wildcards.format} {wildcards.extension} {wildcards.colname} """

@@ -25,7 +25,7 @@ suppressPackageStartupMessages({
 })
 
 
-dir.create("D_Analysis/reports")
+dir.create("D_Analysis/snakefile_merged/reports")
 
 tab_before = data.frame()
 tab_after = data.frame()

@@ -34,12 +34,13 @@ suppressPackageStartupMessages({
 df = read.table(arguments$csv_input, sep=";", header = TRUE, stringsAsFactors = FALSE)
 
 if (str_detect(arguments$csv_input, pattern = "_ann")) {
-  df = df[,c(1:4,6)] %>%
+  df = df %>%
+    dplyr::select(seqnames, start, end , strand) %>%
     dplyr::mutate(Name = str_extract(string = arguments$csv_input, pattern = "(?<=/genomic_ranges/).+(?=_ann)")) %>%
-    dplyr::mutate(GeneID = paste(Name, X, sep="_peak_") ) %>%
+    tibble::rownames_to_column("GeneID") %>%
+    dplyr::mutate(GeneID = paste(Name, GeneID, sep="_peak_")) %>%
     dplyr::rename(Chr = seqnames, Start = start, End = end, Strand = strand) %>%
-    dplyr::select(-Name, - X) %>%
-    dplyr::select(GeneID, Chr, Start, End, Strand) 
+    dplyr::select(-Name, GeneID, Chr, Start, End, Strand)
 }
 
 #**********************
@@ -68,8 +69,19 @@ if (!is.null(arguments$output_txt)) {
 if (!is.null(arguments$output_csv)) {
   print("Save csv...")
   count_df = tibble::rownames_to_column(data.frame(readCount$counts), "name")
-  count_df = tidyr::separate(count_df, col = name, into = c("condition","time","donor", "peak", "num"), sep="_", remove = TRUE) 
-  count_df = tidyr::unite(count_df, col = peakID, peak, num, sep="_", remove = TRUE)
-  if (!str_detect(arguments$csv_input, pattern = "_ann")) { colnames(count_df) = c("condition","time","donor","peakID","nbreads") }
+  if (str_detect(count_df$name[1], pattern = "threshold")) {  
+    count_df = tidyr::separate(count_df, col = name, sep="_", remove = TRUE, 
+                               into = c("condition","time","donor", "threshold", "value", "peak", "num"))
+    count_df = tidyr::unite(count_df, col = threshold, threshold, value, sep="_", remove = TRUE)
+    count_df = tidyr::unite(count_df, col = peakID, peak, num, sep="_", remove = TRUE)
+    if (!str_detect(arguments$csv_input, pattern = "_ann")) { 
+      colnames(count_df) = c("condition","time","donor","threshold", "peakID","nbreads") }
+  } else {
+    count_df = tidyr::separate(count_df, col = name, sep="_", remove = TRUE, 
+                               into = c("condition","time","donor", "peak", "num"))
+    count_df = tidyr::unite(count_df, col = peakID, peak, num, sep="_", remove = TRUE)
+    if (!str_detect(arguments$csv_input, pattern = "_ann")) {
+      colnames(count_df) = c("condition","time","donor","peakID","nbreads") }
+    }
   write.table(count_df, file = arguments$output_csv, sep = ";", row.names = FALSE) 
   }

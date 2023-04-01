@@ -38,7 +38,8 @@ df_report = read.csv2(arguments$input_report_file, sep = ";")
 ### Graphs from qc_report et nbreads_report
 ############################################################
 
-if (arguments$input_report_file == "D_Analysis/reports/qc_report.csv" | arguments$input_report_file == "D_Analysis/reports/nbreads_report.csv") {
+if (arguments$input_report_file == "D_Analysis/snakefile_separated/reports/qc_report.csv" | 
+    arguments$input_report_file == "D_Analysis/snakefile_separated/reports/nbreads_report.csv") {
 
   ####### Code spécifique pour ajouter la valeur de downsampling en sous-titre
   
@@ -95,7 +96,7 @@ if (arguments$input_report_file == "D_Analysis/reports/qc_report.csv" | argument
   if (arguments$graph_type == "line_cond" | arguments$graph_type == "line_donor") {
     
     # On filtre les données pour récupérer seulement celles avec plusieurs points de temps par condition
-    df_filtered = data_frame()  
+    df_filtered = data.frame()  
     for (i in 1:length(unique(df_report$condition))) {
       df_temp = df_report %>% dplyr::filter(condition == unique(df_report$condition)[i])
       if (length(unique(df_temp$time))>1) df_filtered = rbind(df_temp, df_filtered) 
@@ -146,7 +147,7 @@ if (arguments$input_report_file == "D_Analysis/reports/qc_report.csv" | argument
 ### Graphs from nbpeaks_per_chromosome_report 
 ############################################################
 
-if (arguments$input_report_file == "D_Analysis/reports/nbpeaks_per_chromosome_report.csv") {
+if (arguments$input_report_file == "D_Analysis/snakefile_separated/reports/nbpeaks_per_chromosome_report.csv") {
   
   if (arguments$extension == "png") {
     
@@ -257,7 +258,7 @@ if (arguments$input_report_file == "D_Analysis/reports/nbpeaks_per_chromosome_re
 ### Graphs from nbpeaks_report 
 ############################################################
 
-if (arguments$input_report_file == "D_Analysis/reports/nbpeaks_report.csv") {
+if (arguments$input_report_file == "D_Analysis/snakefile_separated/reports/nbpeaks_report.csv") {
   
   if (arguments$extension == "png") {
     
@@ -320,7 +321,7 @@ if (arguments$input_report_file == "D_Analysis/reports/nbpeaks_report.csv") {
     if (arguments$graph_type == "line_cond" | arguments$graph_type == "line_donor") {
 
       # On filtre les données pour récupérer seulement celles avec plusieurs points de temps par condition
-      df_filtered = data_frame()  
+      df_filtered = data.frame()  
       for (i in 1:length(unique(df_report$condition))) {
         df_temp = df_report %>% dplyr::filter(condition == unique(df_report$condition)[i])
         if (length(unique(df_temp$time))>1) df_filtered = rbind(df_temp, df_filtered) 
@@ -373,7 +374,7 @@ if (arguments$input_report_file == "D_Analysis/reports/nbpeaks_report.csv") {
 ### Graphs from nbpeaks_nbreads_report
 #########################
 
-if (arguments$input_report_file == "D_Analysis/reports/nbpeaks_nbreads_long_report.csv") {
+if (arguments$input_report_file == "D_Analysis/snakefile_separated/reports/nbpeaks_nbreads_long_report.csv") {
   
   if (arguments$extension == "png") {
     
@@ -426,12 +427,3 @@ if (arguments$input_report_file == "D_Analysis/reports/nbpeaks_nbreads_long_repo
 }    
 
   
- 
-
-
-
-
-
-
-
-
